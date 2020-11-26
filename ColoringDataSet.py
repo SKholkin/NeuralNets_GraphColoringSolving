@@ -31,15 +31,16 @@ class ColorData(Dataset):
 
     @property
     def raw_file_names(self):
-        return ['1-FullIns_3.col']
+        return ['1-FullIns_3.col', '1-FullIns_4.col', '1-FullIns_4.col', '1-Insertions_4.col']
 
     @property
     def processed_file_names(self):
-        return ['1-FullIns_3.pt']
+        return ['1-FullIns_3.pt', '1-FullIns_4.pt', '1-FullIns_5.pt', '1-Insertions_4.pt']
 
     def download(self):
         raise NotImplementedError('So what are you going to download?')
 
+    # ToDo: write basic files parsing(it's easy)
     def process(self):
         datalist = []
         for raw_file_name, processed_file_name in zip(self.raw_file_names, self.processed_file_names):
@@ -51,4 +52,4 @@ class ColorData(Dataset):
                 out_edges = [str(int(pair.split(' ')[2]) - 1) for pair in edges]
 
             datalist.append({'vertices': main_info.split(' ')[2], 'edges': (in_edges, out_edges) })
-            torch.save(datalist[0], osp.join('datasets', 'ColorData', 'processed', processed_file_name))
+            torch.save(datalist[-1], osp.join('datasets', 'ColorData', 'processed', processed_file_name))

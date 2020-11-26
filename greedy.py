@@ -1,6 +1,7 @@
 import random
 import networkx
 import numpy as np
+from ColoringDataSet import ColorData
 
 
 class Greedy:
@@ -19,27 +20,29 @@ class Greedy:
         return np.max(self.colors)
 
     def color_vertex(self, vertex):
-        print(f"Coloring vertex {vertex}")
-        vertex_color = 0
+        print(f'Coloring vertex {vertex}\n Has edges with')
+        for i in range(self.n):
+            if self.adj_matr[vertex][i] == 1:
+                print(f'v: {i} color: {self.colors[i]}')
         is_possible = False
-        color = 0
+        vertex_color = 0
         while not is_possible:
             for i in range(self.n):
-                if self.adj_matr[vertex][i] == 1 and color == self.colors[i]:
-                    color += 1
+                if self.adj_matr[vertex][i] == 1 and vertex_color == self.colors[i]:
+                    vertex_color += 1
                     break
                 if i == self.n - 1:
                     is_possible = True
-        print(f'Vertex {vertex} color is {color}')
-        self.colors[vertex] = color
+        print(f'Color: {vertex_color}')
+        self.colors[vertex] = vertex_color
         for i in range(self.n):
             if self.adj_matr[vertex][i] == 1 and self.colors[i] == -1:
                 self.color_vertex(i)
 
+
 # seems like properly working algoritm
 if __name__ == "__main__":
-    graph = networkx.chvatal_graph()
-    #graph = networkx.gnm_random_graph(7, 10)
-    adj_matr = networkx.to_numpy_array(graph)
-    greedy = Greedy(adj_matr)
-    print(greedy.execute())
+    color_data = ColorData('datasets/ColorData')
+    for graph_data in color_data:
+        greedy = Greedy(graph_data[0])
+        print(greedy.execute())
