@@ -1,0 +1,4 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==1.7.0+cpu
+networkx==2.5
+torch_geometric==1.6.1
