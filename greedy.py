@@ -20,10 +20,6 @@ class Greedy:
         return np.max(self.colors)
 
     def color_vertex(self, vertex):
-        print(f'Coloring vertex {vertex}\n Has edges with')
-        for i in range(self.n):
-            if self.adj_matr[vertex][i] == 1:
-                print(f'v: {i} color: {self.colors[i]}')
         is_possible = False
         vertex_color = 0
         while not is_possible:
@@ -33,14 +29,12 @@ class Greedy:
                     break
                 if i == self.n - 1:
                     is_possible = True
-        print(f'Color: {vertex_color}')
         self.colors[vertex] = vertex_color
         for i in range(self.n):
             if self.adj_matr[vertex][i] == 1 and self.colors[i] == -1:
                 self.color_vertex(i)
 
 
-# seems like properly working algoritm
 if __name__ == "__main__":
     color_data = ColorData('datasets/ColorData')
     for graph_data in color_data:

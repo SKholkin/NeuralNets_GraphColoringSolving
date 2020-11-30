@@ -1,9 +1,11 @@
+from abc import ABC
+
 from torch_geometric.data import InMemoryDataset, Dataset
 import os.path as osp
 import torch
 
 
-class ColorData(Dataset):
+class ColorData(Dataset, ABC):
 
     def __init__(self, root):
         super(ColorData, self).__init__(root)
@@ -25,17 +27,19 @@ class ColorData(Dataset):
             adj[edges[1][edges_idx]][edges[0][edges_idx]] = 1
         colors = vertices
         vert_to_color = torch.zeros((vertices, colors), dtype=torch.int32)
-        is_solvable = True # number of colors = vertices of course it is solvable
+        is_solvable = True
         numb_of_edges = edges.shape[1]
         return adj, colors, vert_to_color, is_solvable, vertices, numb_of_edges
 
     @property
     def raw_file_names(self):
-        return ['1-FullIns_3.col', '1-FullIns_4.col', '1-FullIns_4.col', '1-Insertions_4.col']
+        with open(osp.join(self.root, 'row', 'layout.txt')) as raw_layout:
+            return raw_layout.readlines()
 
     @property
     def processed_file_names(self):
-        return ['1-FullIns_3.pt', '1-FullIns_4.pt', '1-FullIns_5.pt', '1-Insertions_4.pt']
+        with open(osp.join(self.root, 'processed', 'layout.txt')) as processed_layout:
+            return processed_layout.readlines()
 
     def download(self):
         raise NotImplementedError('So what are you going to download?')
@@ -45,7 +49,15 @@ class ColorData(Dataset):
         datalist = []
         for raw_file_name, processed_file_name in zip(self.raw_file_names, self.processed_file_names):
             edges = []
-            with open(osp.join('datasets', 'ColorData', 'raw', raw_file_name), 'r') as graph:
+            data_from_raw = []
+            with open(osp.join('datasets', 'ColorData', 'raw', raw_file_name), 'r+') as graph:
+                for line in graph.readlines():
+                    if not line[0] == 'c':
+                        data_from_raw.append(line)
+                graph.truncate()
+                graph.writelines(data_from_raw)
+
+            with open(osp.join('datasets', 'ColorData', 'raw', raw_file_name), 'r+') as graph:
                 main_info = graph.readline()
                 edges.extend(graph.readlines())
                 in_edges = [str(int(pair.split(' ')[1]) - 1) for pair in edges]
