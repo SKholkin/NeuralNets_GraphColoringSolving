@@ -1,6 +1,3 @@
-c FILE: queen15_15.col
-c Translated from Stanford GraphBase File: queen15_15.gb
-c Stanford GraphBase ID: gunion(board(15,15,0,0,-1,0,0),board(15,15,0,0,-2,0,0),0,0)
 p edge 225 10360
 e 1 17
 e 1 33

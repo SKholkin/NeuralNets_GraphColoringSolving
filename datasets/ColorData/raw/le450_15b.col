@@ -1,36 +1,3 @@
-c FILE:  le450_15b.col
-c
-c SOURCE: Craig Morgenstern (morgenst@riogrande.cs.tcu.edu)
-c
-c DESCRIPTION: This is a Leighton graph as described in
-c   F.T. Leighton.
-c   Journal of Research of the National Bureau of Standards,  
-c   vol. 84, no. 6,  Nov-Dec 1979, pp 489-505.
-c
-c 
-c Leighton graph
-c data structure     : sparse
-c graph gen seed     : 213549
-c number of vertices : 450
-c max number of edges: 50000
-c number of classes  : 15
-c a c m              : 8401 6859 252105
-c clique vector      :     clique sz     num cliques
-c                          ---------     -----------
-c                                2          1336
-c                                5           108
-c                               10            67
-c                               15            40
-c Leighton's proof : 15 coloring
-c
-c           Graph Stats
-c number of vertices  : 450
-c nonisolated vertices: 450
-c number of edges     : 8169
-c edge density        : 0.080861
-c max degree          : 94
-c avg degree          : 36.31
-c min degree          : 1
 p edge 450 8169
 e 1 440
 e 1 72

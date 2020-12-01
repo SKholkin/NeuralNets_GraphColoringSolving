@@ -1,9 +1,3 @@
-c FILE: school1_nsh.col
-c
-c Source: Gary Lewandowski (lewandow@cs.wisc.edu)
-c Description: Class Scheduling Graph
-c              Final Schedules, no study halls
-c
 p edge 352 14612
 e 1 11
 e 1 126

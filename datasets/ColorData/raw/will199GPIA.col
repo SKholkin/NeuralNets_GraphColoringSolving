@@ -1,12 +1,3 @@
-c FILE: will199GPIA.col
-c SOURCE: Shahadat Hossain and Trond Steihaug
-c DESCRIPTION: Graph obtained from a matrix partitioning problem
-c              in the segmented columns approach to determine
-c              sparse Jacobian matrices.
-c              Given a matrix A determine G_\Pi(A) where \Pi is a row
-c              partition of A. Matrix A for this graph is WILL199 
-c              from SMTAPE package of Harwell-Boeing test matrix collection.
-c
 p edge 701 7065
 e 2 3
 e 2 1

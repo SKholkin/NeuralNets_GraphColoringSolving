@@ -1,17 +1,3 @@
-c File: flat1000_76_0.col
-c
-c SOURCE: Joseph Culberson (joe@cs.ualberta.ca)
-c DESCRIPTION: Quasi-random coloring problem
-c              generated with flatness = 0
-c                             probability = 0.500
-c                             known coloring = 76
-c                             random seed = 380013584
-c              Creation Date:  Wed Oct 12 10:34:45 1994
-c Maximum degree = 532 Minimum degree = 455
-c COLOR VERIFICATION: Using the permuted order
-c under simple greedy yields the specified
-c coloring number
-c Color = 76 specified partitions = 76
 p edge 1000 246708
 e 3 1
 e 5 2

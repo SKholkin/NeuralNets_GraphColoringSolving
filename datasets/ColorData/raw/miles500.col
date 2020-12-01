@@ -1,6 +1,3 @@
-c FILE: miles500.col
-c Translated from Stanford GraphBase File: miles500.gb
-c Stanford GraphBase ID: miles(128,0,0,0,500,127,0)
 p edge 128 2340
 e 1 120
 e 1 110

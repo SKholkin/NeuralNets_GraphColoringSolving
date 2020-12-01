@@ -1,17 +1,3 @@
-c File: flat300_28_0.col
-c
-c SOURCE: Joseph Culberson (joe@cs.ualberta.ca)
-c DESCRIPTION: Quasi-random coloring problem
-c              generated with flatness = 0
-c                             probability = 0.500
-c                             known coloring = 28
-c                             random seed = 700198124
-c              Creation Date:  Mon Sep 19 08:26:27 1994
-c Maximum degree = 162 Minimum degree = 130
-c COLOR VERIFICATION: Using the permuted order
-c under simple greedy yields the specified
-c coloring number
-c Color = 28 specified partitions = 28
 p edge 300 21695
 e 2 1
 e 5 2
