@@ -1,9 +1,3 @@
-c FILE: 5-FullIns_4.col
-
-c SOURCE: M. Caramia (caramia@iac.rm.cnr.it) and P. Dell'Olmo (paolo.dellolmo@uniroma1.it)
-
-c DESCRIPTION: 5-FullIns graph of order 4
-
 p edge 1085 11395
 e 1 2
 e 1 4

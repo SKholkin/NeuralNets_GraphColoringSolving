@@ -1,6 +1,3 @@
-c FILE: 1-Insertions_6.col
-c SOURCE: M. Caramia (caramia@iac.rm.cnr.it) and P. Dell'Olmo (paolo.dellolmo@uniroma1.it)
-c DESCRIPTION: 1-Insertions graph of order 6%
 p edge 607 6337
 e 1 2
 e 1 4

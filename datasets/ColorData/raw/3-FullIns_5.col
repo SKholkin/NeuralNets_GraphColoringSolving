@@ -1,9 +1,3 @@
-c FILE: 3-FullIns_5.col
-
-c SOURCE: M. Caramia (caramia@iac.rm.cnr.it) and P. Dell'Olmo (paolo.dellolmo@uniroma1.it)
-
-c DESCRIPTION: 3-FullIns graph of order 5
-
 p edge 2030 33751
 e 1 2
 e 1 4

@@ -1,12 +1,3 @@
-c FILE: ash331GPIA
-c SOURCE: Shahadat Hossain and Trond Steihaug
-c DESCRIPTION: Graph obtained from a matrix partitioning problem
-c              in the segmented columns approach to determine
-c              sparse Jacobian matrices.
-c              Given a matrix A determine G_\Pi(A) where \Pi is a row
-c              partition of A. Matrix A for this graph is ASH958 
-c              from SMTAPE package of Harwell-Boeing test matrix collection.
-c
 p edge 662  4185
 e   2  1
 e   3  4

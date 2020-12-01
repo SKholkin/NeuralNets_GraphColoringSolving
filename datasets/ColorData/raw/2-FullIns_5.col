@@ -1,9 +1,3 @@
-c FILE: 2-FullIns_5.col
-
-c SOURCE: M. Caramia (caramia@iac.rm.cnr.it) and P. Dell'Olmo (paolo.dellolmo@uniroma1.it)
-
-c DESCRIPTION: 2-FullIns graph of order 5
-
 p edge 852 12201
 e 1 2
 e 1 4

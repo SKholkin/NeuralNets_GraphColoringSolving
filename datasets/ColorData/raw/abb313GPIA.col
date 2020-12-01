@@ -1,12 +1,3 @@
-c FILE: abb313GPIA.col
-c SOURCE: Shahadat Hossain and Trond Steihaug
-c DESCRIPTION: Graph obtained from a matrix partitioning problem
-c              in the segmented columns approach to determine
-c              sparse Jacobian matrices.
-c              Given a matrix A determine G_\Pi(A) where \Pi is a row
-c              partition of A. Matrix A for this graph is ABB313 
-c              from SMTAPE package of Harwell-Boeing test matrix collection.
-c
 p edge 1557 65390
 e 4 5
 e 4 6

@@ -2,12 +2,14 @@ from abc import ABC
 
 from torch_geometric.data import InMemoryDataset, Dataset
 import os.path as osp
+import os
 import torch
 
 
 class ColorData(Dataset, ABC):
 
     def __init__(self, root):
+        self.dataset_abs_path = osp.join(os.path.dirname(os.path.abspath(__file__)), root)
         super(ColorData, self).__init__(root)
         self.data = []
         for idx in range(len(self.processed_file_names)):
@@ -33,18 +35,17 @@ class ColorData(Dataset, ABC):
 
     @property
     def raw_file_names(self):
-        with open(osp.join(self.root, 'row', 'layout.txt')) as raw_layout:
-            return raw_layout.readlines()
+        with open(osp.join(self.dataset_abs_path, 'raw', 'layout.txt')) as raw_layout:
+            return [line.replace('\n', '') for line in raw_layout.readlines()]
 
     @property
     def processed_file_names(self):
-        with open(osp.join(self.root, 'processed', 'layout.txt')) as processed_layout:
-            return processed_layout.readlines()
+        with open(osp.join(self.dataset_abs_path, 'processed', 'layout.txt')) as processed_layout:
+            return [line.replace('\n', '') for line in processed_layout.readlines()]
 
     def download(self):
-        raise NotImplementedError('So what are you going to download?')
+        raise NotImplementedError('Link will be provided later')
 
-    # ToDo: write basic files parsing(it's easy)
     def process(self):
         datalist = []
         for raw_file_name, processed_file_name in zip(self.raw_file_names, self.processed_file_names):
@@ -52,8 +53,10 @@ class ColorData(Dataset, ABC):
             data_from_raw = []
             with open(osp.join('datasets', 'ColorData', 'raw', raw_file_name), 'r+') as graph:
                 for line in graph.readlines():
-                    if not line[0] == 'c':
+                    if not (line[0] == 'c' or line[0] == '\n'):
                         data_from_raw.append(line)
+
+            with open(osp.join('datasets', 'ColorData', 'raw', raw_file_name), 'r+') as graph:
                 graph.truncate()
                 graph.writelines(data_from_raw)
 
@@ -63,5 +66,5 @@ class ColorData(Dataset, ABC):
                 in_edges = [str(int(pair.split(' ')[1]) - 1) for pair in edges]
                 out_edges = [str(int(pair.split(' ')[2]) - 1) for pair in edges]
 
-            datalist.append({'vertices': main_info.split(' ')[2], 'edges': (in_edges, out_edges) })
+            datalist.append({'vertices': main_info.split(' ')[2], 'edges': (in_edges, out_edges)})
             torch.save(datalist[-1], osp.join('datasets', 'ColorData', 'processed', processed_file_name))

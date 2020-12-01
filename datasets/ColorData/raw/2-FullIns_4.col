@@ -1,9 +1,3 @@
-c FILE: 2-FullIns_4.col
-
-c SOURCE: M. Caramia (caramia@iac.rm.cnr.it) and P. Dell'Olmo (paolo.dellolmo@uniroma1.it)
-
-c DESCRIPTION: 2-FullIns graph of order 4
-
 p edge 212 1621
 e 1 2
 e 1 4

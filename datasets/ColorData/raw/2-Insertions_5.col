@@ -1,6 +1,3 @@
-c FILE: 2-Insertions_5.col
-c SOURCE: M. Caramia (caramia@iac.rm.cnr.it) and P. Dell'Olmo (paolo.dellolmo@uniroma1.it)
-c DESCRIPTION: 2-Insertions graph of order 5%
 p edge 597 3936
 e 1 2
 e 1 4
