@@ -6,7 +6,7 @@ from torch import save
 import logging
 import datetime
 from utils import print_weight_matrix, adj_matr_to_adj_list
-from ColorDataset import prepare_folders
+from ColorDataset import prepare_folders, ColorDataset
 import random
 import argparse
 
@@ -142,4 +142,5 @@ if __name__ == '__main__':
     parser.add_argument('--nmax', type=int, help='Maximum number of vertices in dataset', default=20)
     parser.add_argument('--root', type=str, help='Dataset root path')
     args = parser.parse_args()
-    generate_dataset_gnn_gcp(nmin=args.nmin, nmax=args.nmax, samples=args.samples, root=args.root)
+    #generate_dataset_gnn_gcp(nmin=args.nmin, nmax=args.nmax, samples=args.samples, root=args.root)
+    dataset = ColorDataset('datasets')
