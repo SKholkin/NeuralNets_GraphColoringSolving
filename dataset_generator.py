@@ -1,6 +1,14 @@
 import numpy as np
 from graph_generator import basic_graph_gen
 from ortools.sat.python import cp_model
+import logging
+import datetime
+from utils import print_weight_matrix
+import random
+
+a = str.maketrans('- :.', '____')
+logging.basicConfig(filename=f"log/{str(datetime.datetime.today()).translate(str.maketrans('- :.', '____'))}.log",
+                    filemode='w')
 
 
 def get_edges(adj_matr, is_edge=True):
@@ -8,8 +16,8 @@ def get_edges(adj_matr, is_edge=True):
     is_edge = 1 if is_edge else 0
     not_edges = []
     for i in range(len(adj_matr)):
-        for j in range(len(adj_matr)):
-            if adj_matr[i][j] == 0:
+        for j in range(i + 1, len(adj_matr)):
+            if adj_matr[i][j] == is_edge:
                 not_edges.append((i, j))
     return not_edges
 
@@ -25,10 +33,10 @@ def solve_by_csp(adj_matr, n_colors):
     status = solver.Solve(model)
     if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:
         solution = [solver.Value(x) for x in model_vars]
-        print('Solving was successful')
+        logging.info('Solving was successful')
         return solution
     else:
-        print('Solving was NOT successful')
+        logging.info('Solving was NOT successful')
         return None
 
 
@@ -40,23 +48,30 @@ def sort_edges_by_vertex_ranking(edges, adj_matr):
     pass
 
 
+def random_sort_edges(edges):
+    random.shuffle(edges)
+    return edges
+
+
 def create_adversarial_graph_my_version(basic_graph, n_colors):
     solution = solve_by_csp(basic_graph, n_colors)
     if solution is not None:
         not_edges = get_edges(basic_graph, is_edge=False)
-        # ToDo: sort edges by vertex ranking
+        not_edges = random_sort_edges(not_edges)
         new_graph = basic_graph.copy()
         for k, (i, j) in enumerate(not_edges):
             new_graph[i][j] = 1
+            new_graph[j][i] = 1
             new_solution = solve_by_csp(new_graph, n_colors)
             if new_solution is None:
                 return new_graph
     else:
-        edges = get_edges(basic_graph, is_edge=False)
-        # ToDo: sort edges by vertex ranking
+        edges = get_edges(basic_graph, is_edge=True)
+        edges = random_sort_edges(edges)
         new_graph = basic_graph.copy()
         for k, (i, j) in enumerate(edges):
             new_graph[i][j] = 0
+            new_graph[j][i] = 0
             new_solution = solve_by_csp(new_graph, n_colors)
             if new_solution is not None:
                 return new_graph
@@ -72,35 +87,42 @@ def create_adversarial_graph_gnn_gcp(basic_graph, n_colors):
         for k, (i, j) in enumerate(not_edges):
             new_graph = basic_graph.copy()
             new_graph[i][j] = 1
+            new_graph[j][i] = 1
             new_solution = solve_by_csp(new_graph, n_colors)
             if new_solution is None:
                 return new_graph
-        if k == len(not_edges):
-            print("Couldn't find diff edge")
-            return None
+        print("Couldn't find diff edge")
+        return None
     else:
         edges = get_edges(basic_graph, is_edge=True)
         for k, (i, j) in enumerate(edges):
             new_graph = basic_graph.copy()
             new_graph[i][j] = 0
+            new_graph[j][i] = 0
             new_solution = solve_by_csp(new_graph, n_colors)
             if new_solution is not None:
                 return new_graph
-        if k == len(edges):
-            print("Couldn't find diff edge")
-            return None
+        print("Couldn't find diff edge")
+        return None
 
 
 def generate_dataset_gnn_gcp(nmin, nmax, samples, path):
-    prob_by_color = {3: (0.01, 0.1), 4: (0.1, 0.2), 5: (0.2, 0.3),
-                        6: (0.2, 0.3), 7: (0.3, 0.4), 8: (0.4, 0.5)}
+    prob_by_color = {3: (0.05, 0.1), 4: (0.1, 0.2), 5: (0.2, 0.25),
+                        6: (0.25, 0.3), 7: (0.3, 0.4), 8: (0.4, 0.5)}
     for iter in range(samples):
         n_colors = np.random.randint(3, 8)
+        print(f'n colors {n_colors}')
         n = np.random.randint(nmin, nmax)
         prob_of_edge = np.random.rand() * (prob_by_color[n_colors][1] - prob_by_color[n_colors][0]) + prob_by_color[n_colors][0]
         basic_graph = basic_graph_gen(n, prob_of_edge)
-        solution = solve_by_csp(basic_graph, n_colors)
-        adversarial_graph = create_adversarial_graph_gnn_gcp()
+        print('create adv graph')
+        adversarial_graph = create_adversarial_graph_my_version(basic_graph, n_colors)
         write_graph(basic_graph, path)
+        print_weight_matrix(basic_graph)
         if adversarial_graph is not None:
+            print_weight_matrix(adversarial_graph)
             write_graph(adversarial_graph, path)
+
+
+if __name__ == '__main__':
+    generate_dataset_gnn_gcp(nmin=10, nmax=20, samples=6, path='log')

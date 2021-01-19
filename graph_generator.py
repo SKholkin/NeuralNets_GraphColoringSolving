@@ -1,6 +1,5 @@
 import numpy as np
 from utils import print_weight_matrix
-from dataset_generator import solve_by_csp
 
 
 def basic_graph_gen(n, prob):
