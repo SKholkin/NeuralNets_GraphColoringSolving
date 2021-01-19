@@ -2,7 +2,7 @@ import random
 import networkx
 import numpy as np
 import os
-from ColoringDataSet import ColorData
+from ColorBenchmarkDataset import ColorBenchmark
 
 
 class Greedy:
@@ -37,7 +37,7 @@ class Greedy:
 
 
 if __name__ == "__main__":
-    color_data = ColorData(os.path.join('datasets', 'ColorData'))
+    color_data = ColorBenchmark(os.path.join('datasets', 'ColorBenchmark'))
     for graph_data in color_data:
         greedy = Greedy(graph_data[0])
         print(greedy.execute())
