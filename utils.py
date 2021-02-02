@@ -16,3 +16,12 @@ def adj_matr_to_adj_list(adj_matr):
                 adj_matr[i][j] = 0
                 adj_matr[j][i] = 0
     return adj_list
+
+
+# working
+def adj_list_to_adj_matr(adj_list):
+    adj_matr = [([0 for j in range(len(adj_list))]) for i in adj_list]
+    for i, vertex_info in enumerate(adj_list):
+        for j in vertex_info:
+            adj_matr[i][j] = 1
+    return adj_matr

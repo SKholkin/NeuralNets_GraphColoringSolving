@@ -1,12 +1,12 @@
 import numpy as np
 import os
 from graph_generator import basic_graph_gen
-from ortools.sat.python import cp_model
 from torch import save
 import logging
 import datetime
 from utils import print_weight_matrix, adj_matr_to_adj_list
 from ColorDataset import prepare_folders, ColorDataset
+from graph_generator import solve_by_csp, basic_instance_gen
 import random
 import argparse
 
@@ -27,27 +27,10 @@ def get_edges(adj_matr, is_edge=True):
     return not_edges
 
 
-def solve_by_csp(adj_matr, n_colors):
-    model = cp_model.CpModel()
-    model_vars = [model.NewIntVar(0, n_colors - 1, str(k)) for k, col in enumerate(adj_matr)]
-    for i in range(len(adj_matr)):
-        for j in range(i, len(adj_matr[i])):
-            if adj_matr[i][j] == 1:
-                model.Add(model_vars[i] != model_vars[j])
-    solver = cp_model.CpSolver()
-    status = solver.Solve(model)
-    if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:
-        solution = [solver.Value(x) for x in model_vars]
-        print('Solving was successful')
-        return solution
-    else:
-        print('Solving was NOT successful')
-        return None
-
-
-def write_graph(graph, path):
-    adj_list = adj_matr_to_adj_list(graph)
-    save(adj_list, path)
+def write_instance(graph, n_colors, path):
+    to_save = [n_colors]
+    to_save += adj_matr_to_adj_list(graph)
+    save(to_save, path)
 
 
 def sort_edges_by_vertex_ranking(edges, adj_matr):
@@ -74,7 +57,10 @@ def create_adversarial_graph_my_version(basic_graph, n_colors):
             new_graph[j][i] = 1
             new_solution = solve_by_csp(new_graph, n_colors)
             if new_solution is None:
-                return new_graph
+                while new_solution is None:
+                    n_colors += 1
+                    new_solution = solve_by_csp(new_graph, n_colors)
+                return new_graph, n_colors
     else:
         edges = get_edges(basic_graph, is_edge=True)
         edges = random_sort_edges(edges)
@@ -84,7 +70,7 @@ def create_adversarial_graph_my_version(basic_graph, n_colors):
             new_graph[j][i] = 0
             new_solution = solve_by_csp(new_graph, n_colors)
             if new_solution is not None:
-                return new_graph
+                return new_graph, n_colors
     # actually algo won't get this far but just to be sure...
     return None
 
@@ -126,11 +112,12 @@ def generate_dataset_gnn_gcp(nmin, nmax, samples, root):
         n = np.random.randint(nmin, nmax)
         prob_of_edge = np.random.rand() * (prob_by_color[n_colors][1] - prob_by_color[n_colors][0]) + prob_by_color[n_colors][0]
         basic_graph = basic_graph_gen(n, prob_of_edge)
-        adversarial_graph = create_adversarial_graph_my_version(basic_graph, n_colors)
-        write_graph(basic_graph, os.path.join(root,'ColorDataset', 'basic', f'graph_{iter}.pt'))
+        basic_graph, n_colors = basic_instance_gen(n)
+        adversarial_graph, n_adv_colors = create_adversarial_graph_my_version(basic_graph, n_colors)
+        write_instance(basic_graph, n_colors, os.path.join(root, 'ColorDataset', 'basic', f'graph_{iter}.pt'))
         if adversarial_graph is not None:
             print('Found an adversarial graph')
-            write_graph(adversarial_graph, os.path.join(root, 'ColorDataset', 'adv', f'graph_{iter}.pt'))
+            write_instance(adversarial_graph, n_adv_colors, os.path.join(root, 'ColorDataset', 'adv', f'graph_{iter}.pt'))
         else:
             print('Not found an adversarial graph')
 
@@ -142,5 +129,5 @@ if __name__ == '__main__':
     parser.add_argument('--nmax', type=int, help='Maximum number of vertices in dataset', default=20)
     parser.add_argument('--root', type=str, help='Dataset root path')
     args = parser.parse_args()
-    #generate_dataset_gnn_gcp(nmin=args.nmin, nmax=args.nmax, samples=args.samples, root=args.root)
+    generate_dataset_gnn_gcp(nmin=args.nmin, nmax=args.nmax, samples=args.samples, root=args.root)
     dataset = ColorDataset('datasets')

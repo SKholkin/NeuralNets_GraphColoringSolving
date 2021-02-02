@@ -1,5 +1,24 @@
 import numpy as np
 from utils import print_weight_matrix
+from ortools.sat.python import cp_model
+
+
+def solve_by_csp(adj_matr, n_colors):
+    model = cp_model.CpModel()
+    model_vars = [model.NewIntVar(0, n_colors - 1, str(k)) for k, col in enumerate(adj_matr)]
+    for i in range(len(adj_matr)):
+        for j in range(i, len(adj_matr[i])):
+            if adj_matr[i][j] == 1:
+                model.Add(model_vars[i] != model_vars[j])
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+    if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:
+        solution = [solver.Value(x) for x in model_vars]
+        print('Solving was successful')
+        return solution
+    else:
+        print('Solving was NOT successful')
+        return None
 
 
 def basic_graph_gen(n, prob):
@@ -11,6 +30,22 @@ def basic_graph_gen(n, prob):
     np.fill_diagonal(adj_matr, 0)
     return adj_matr
 
+
+prob_by_color = {3: (0.05, 0.1), 4: (0.1, 0.2), 5: (0.2, 0.25),
+                        6: (0.25, 0.3), 7: (0.3, 0.4), 8: (0.4, 0.5)}
+
+
+def basic_instance_gen(n):
+    n_colors = np.random.randint(3, 8)
+    prob_of_edge = np.random.rand() * (prob_by_color[n_colors][1] - prob_by_color[n_colors][0]) + \
+                   prob_by_color[n_colors][0]
+    basic_graph = basic_graph_gen(n, prob_of_edge)
+    solution = None
+    n_colors = 1
+    while solution is None:
+        n_colors += 1
+        solution = solve_by_csp(basic_graph, n_colors)
+    return basic_graph, n_colors
 
 #if __name__ == '__main__':
 #    n = 10
