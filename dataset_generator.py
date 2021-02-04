@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from graph_generator import basic_graph_gen
+import time
 from torch import save
 import logging
 import datetime
@@ -104,14 +104,11 @@ def create_adversarial_graph_gnn_gcp(basic_graph, n_colors):
 
 
 def generate_dataset_gnn_gcp(nmin, nmax, samples, root):
+    start = time.time()
     prepare_folders(root)
-    prob_by_color = {3: (0.05, 0.1), 4: (0.1, 0.2), 5: (0.2, 0.25),
-                        6: (0.25, 0.3), 7: (0.3, 0.4), 8: (0.4, 0.5)}
     for iter in range(samples):
         n_colors = np.random.randint(3, 8)
         n = np.random.randint(nmin, nmax)
-        prob_of_edge = np.random.rand() * (prob_by_color[n_colors][1] - prob_by_color[n_colors][0]) + prob_by_color[n_colors][0]
-        basic_graph = basic_graph_gen(n, prob_of_edge)
         basic_graph, n_colors = basic_instance_gen(n)
         adversarial_graph, n_adv_colors = create_adversarial_graph_my_version(basic_graph, n_colors)
         write_instance(basic_graph, n_colors, os.path.join(root, 'ColorDataset', 'basic', f'graph_{iter}.pt'))
@@ -120,6 +117,8 @@ def generate_dataset_gnn_gcp(nmin, nmax, samples, root):
             write_instance(adversarial_graph, n_adv_colors, os.path.join(root, 'ColorDataset', 'adv', f'graph_{iter}.pt'))
         else:
             print('Not found an adversarial graph')
+    end = time.time()
+    print(f'Creation of {samples} samples of size from {nmin} to {nmax} took {end - start} seconds')
 
 
 if __name__ == '__main__':
@@ -130,4 +129,3 @@ if __name__ == '__main__':
     parser.add_argument('--root', type=str, help='Dataset root path')
     args = parser.parse_args()
     generate_dataset_gnn_gcp(nmin=args.nmin, nmax=args.nmax, samples=args.samples, root=args.root)
-    dataset = ColorDataset('datasets')
