@@ -13,7 +13,6 @@ def main_worker():
         pass
     # create dataloader
     # iterate through dataloader
-    #
 
 
 if __name__ == '__main__':
