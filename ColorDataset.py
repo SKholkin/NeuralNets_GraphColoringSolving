@@ -12,15 +12,10 @@ def _transform_to_instance(adj_matr, n_colors, v_size=30, c_size=11):
     # Mvc [V,C] vertex-to-color 1
     # V vertex embeddings from normal
     # C color embeddings (not for each vertex) from uniform
-    Mvc = torch.tensor([[1 if j < n_colors else 0 for j in range(c_size)] for i in range(v_size)])
+    Mvc = torch.tensor([[1 if j < n_colors else 0 for j in range(c_size)] for i in range(v_size)], dtype=torch.float32)
     adj_matr = torch.tensor([[adj_matr[i][j] if (len(adj_matr) > max(i, j)) else 0
-                              for j in range(v_size)] for i in range(v_size)])
-    normal = Normal(0, 1)
-    uniform = Uniform(0, 1)
-    V = normal.sample(torch.Size([v_size]))
-    # ToDo: change C generate to assign random (uniform distributed color) to each vertex
-    C = uniform.sample(torch.Size([c_size]))
-    return adj_matr, Mvc, V, C
+                              for j in range(v_size)] for i in range(v_size)], dtype=torch.float32)
+    return adj_matr, Mvc
 
 
 class ColorDataset(Dataset):
