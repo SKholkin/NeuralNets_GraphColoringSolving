@@ -15,6 +15,7 @@ class GraphNeuralNetworkGCP(nn.Module):
         # let only color messages to update vertex embeddings
         self.rnn_v = nn.LSTMCell(input_size=2 * max_size, hidden_size=max_size)
         self.rnn_c = nn.LSTMCell(input_size=max_n_colors, hidden_size=max_n_colors)
+        a = list(self.parameters())
         # init Mvv matmul layer (requires_grad=False)
         self.c_msg_mlp = nn.Sequential(
             nn.Linear(in_features=max_n_colors, out_features=max_n_colors),
@@ -30,8 +31,12 @@ class GraphNeuralNetworkGCP(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, Mvv, Mvc):
+    def forward(self, Mvv, n_colors):
         batch_size = Mvv.size(0)
+        Mvc = torch.tensor([[[1 if j < n_colors[batch_elem] else 0
+                              for j in range(self.max_n_colors)]
+                             for i in range(self.max_size)]
+                            for batch_elem in range(batch_size)], dtype=torch.float32)
         # init base vars
         uniform = Uniform(0, 1)
         normal = Normal(0, 1)
@@ -51,6 +56,6 @@ class GraphNeuralNetworkGCP(nn.Module):
             ch, c_memory = self.rnn_c(rnn_color_inputs, (ch, c_memory))
         # compute final prediction
         vote = self.v_vote_mlp(vh)
-        mean_vote = torch.mean(vote)
+        mean_vote = torch.mean(vote, 1)
         pred = torch.sigmoid(mean_vote)
         return pred

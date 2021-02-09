@@ -106,19 +106,20 @@ def create_adversarial_graph_gnn_gcp(basic_graph, n_colors):
 def generate_dataset_gnn_gcp(nmin, nmax, samples, root):
     start = time.time()
     prepare_folders(root)
+    print_freq = 10
     for iter in range(samples):
-        n_colors = np.random.randint(3, 8)
         n = np.random.randint(nmin, nmax)
         basic_graph, n_colors = basic_instance_gen(n)
         adversarial_graph, n_adv_colors = create_adversarial_graph_my_version(basic_graph, n_colors)
         write_instance(basic_graph, n_colors, os.path.join(root, 'ColorDataset', 'basic', f'graph_{iter}.pt'))
         if adversarial_graph is not None:
-            print('Found an adversarial graph')
             write_instance(adversarial_graph, n_adv_colors, os.path.join(root, 'ColorDataset', 'adv', f'graph_{iter}.pt'))
         else:
             print('Not found an adversarial graph')
+        if iter % print_freq == 0:
+            print(f'{iter}/{samples} pairs generated')
     end = time.time()
-    print(f'Creation of {samples} samples of size from {nmin} to {nmax} took {end - start} seconds')
+    print(f'Creation of {samples} samples of size from {nmin} to {nmax} has taken {end - start} seconds')
 
 
 if __name__ == '__main__':

@@ -6,16 +6,15 @@ from torch.distributions.normal import Normal
 from torch.distributions.uniform import Uniform
 
 
-def _transform_to_instance(adj_matr, n_colors, v_size=30, c_size=11):
+def _transform_to_instance(adj_matr, n_colors, chromatic_numb, v_size=30, c_size=11):
     # get final matrice instances to put them into GNN
     # Mvv [V,V] adj matr 0 or 1
     # Mvc [V,C] vertex-to-color 1
     # V vertex embeddings from normal
     # C color embeddings (not for each vertex) from uniform
-    Mvc = torch.tensor([[1 if j < n_colors else 0 for j in range(c_size)] for i in range(v_size)], dtype=torch.float32)
     adj_matr = torch.tensor([[adj_matr[i][j] if (len(adj_matr) > max(i, j)) else 0
                               for j in range(v_size)] for i in range(v_size)], dtype=torch.float32)
-    return adj_matr, Mvc
+    return adj_matr, n_colors, chromatic_numb
 
 
 class ColorDataset(Dataset):
@@ -36,13 +35,15 @@ class ColorDataset(Dataset):
                 self.basic_data.append(self.adv_graph_data[i])
         self.data = []
         for graph_info in self.basic_data:
-            self.data += [(graph_info[1:], n_color) for n_color in range(max(2, graph_info[0] - 2), graph_info[0] + 3)]
+            self.data += [(graph_info[1:], n_color, graph_info[0]) for n_color
+                          in range(max(2, graph_info[0] - 2), graph_info[0] + 3)]
 
     def __getitem__(self, idx):
         # get instance through transformation
         adj_matr = adj_list_to_adj_matr(self.data[idx][0])
         n_color = self.data[idx][1]
-        return _transform_to_instance(adj_matr, n_color, v_size=self.max_size, c_size=self.max_n_colors)
+        chromatic_numb = self.data[idx][2]
+        return _transform_to_instance(adj_matr, n_color, chromatic_numb, v_size=self.max_size, c_size=self.max_n_colors)
 
     def __len__(self):
         return len(self.basic_data)

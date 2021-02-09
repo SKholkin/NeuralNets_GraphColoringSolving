@@ -3,6 +3,7 @@ from utils import print_weight_matrix
 from ortools.sat.python import cp_model
 
 
+# ToDo: maybe test it more properly
 def solve_by_csp(adj_matr, n_colors):
     model = cp_model.CpModel()
     model_vars = [model.NewIntVar(0, n_colors - 1, str(k)) for k, col in enumerate(adj_matr)]
@@ -14,10 +15,9 @@ def solve_by_csp(adj_matr, n_colors):
     status = solver.Solve(model)
     if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:
         solution = [solver.Value(x) for x in model_vars]
-        print('Solving was successful')
+        print(f'solved for {n_colors}')
         return solution
     else:
-        print('Solving was NOT successful')
         return None
 
 
