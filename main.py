@@ -11,9 +11,11 @@ from os import path as osp
 from os import mkdir
 import datetime
 import shutil
+from statistics import mean
 
 from ColorDataset import ColorDataset
 from gnn import GraphNeuralNetworkGCP
+from utils import AverageMetr
 
 
 def configure_logging(config):
@@ -26,12 +28,14 @@ def configure_logging(config):
 
 def get_argument_parser():
     parser = ArgumentParser()
+    parser.add_argument('--mode', type=str, default='train', help='train or test')
     parser.add_argument('--config', type=str, help='config path')
     parser.add_argument('--resume', type=str, help='resuming checkpoint')
     parser.add_argument('--data', type=str, help='dataset path')
     parser.add_argument('--save_freq', type=int, help='frequency of saving checkpoints in epochs')
-    parser.add_argument('--print_step', type=int, default=100, help='step of printing statistics')
+    parser.add_argument('--print_freq', type=int, default=100, help='step of printing statistics')
     parser.add_argument('--log_dir', type=str, help='directory for logging and saving checkpoints')
+    parser.add_argument('--test_freq', type=int, default=5, help='test every (test_freq) epoch')
     return parser
 
 
@@ -55,32 +59,58 @@ class GNNConfig(Dict):
 def main_worker(config):
     # config parse?
     configure_logging(config)
-    dataset = ColorDataset('datasets')
+    train_dataset = ColorDataset('datasets', is_train=True)
+    val_dataset = ColorDataset('datasets', is_train=False)
     criterion = BCELoss()
-    model = GraphNeuralNetworkGCP(dataset.max_size, dataset.max_n_colors, timesteps=32)
+    model = GraphNeuralNetworkGCP(train_dataset.max_size, train_dataset.max_n_colors, timesteps=32)
     if config.resume is not None:
         model = torch.load(config.resume)
     optimizer = Adam(model.parameters(), lr=config.lr)
-    dataloader = DataLoader(dataset, batch_size=config.batch_size, shuffle=True, num_workers=0)
-    train(model, optimizer, config, dataloader, criterion)
+    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=0)
+    val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=True, num_workers=0)
+    train(model, optimizer, config, train_loader, val_loader, criterion)
 
 
-def train(model, optimizer, config, dataloader, criterion):
+# ToDo: calculate accuracy
+def train(model, optimizer, config, train_loader, val_loader, criterion):
     for epoch in range(config.epochs):
-        epoch_len = int(len(dataloader))
-        for iter, (Mvv_batch, n_colors_batch, chrom_numb_batch) in enumerate(dataloader):
+        print(f'Training epoch {epoch}')
+        avg_loss = AverageMetr()
+        epoch_len = int(len(train_loader))
+        for iter, (Mvv_batch, n_colors_batch, chrom_numb_batch) in enumerate(train_loader):
             optimizer.zero_grad()
             output = model(Mvv_batch, n_colors_batch)
             target = tensor([1 if n_colors_batch[batch_elem] >= chrom_numb_batch[batch_elem] else 0
                              for batch_elem in range(n_colors_batch.size(0))],
                             dtype=float32)
             loss = criterion(output, target)
+            acc = compute_acc(output, target)
             loss.backward()
             optimizer.step()
-            if iter % config.print_step == 0:
-                print(f'{iter}/{epoch_len} iter Loss: {loss}')
+            if iter % config.print_freq == 0:
+                print(f'{iter}/{epoch_len} iter Loss: {loss}({avg_loss.avg()}) Acc: {acc}')
         if epoch % config.save_freq == 0:
             torch.save(model, osp.join(config.log_dir, f'epoch_{epoch}'))
+            print('Successfully saved checkpoint')
+        if epoch % config.test_freq == 0:
+            validate(model, val_loader, criterion, config)
+
+
+def validate(model, val_loader, criterion, config):
+    print('Validating...')
+    with torch.no_grad():
+        for iter, (Mvv_batch, n_colors_batch, chrom_numb_batch) in enumerate(val_loader):
+            output = model(Mvv_batch, n_colors_batch)
+            target = tensor([1 if n_colors_batch[batch_elem] >= chrom_numb_batch[batch_elem] else 0
+                             for batch_elem in range(n_colors_batch.size(0))],
+                             dtype=float32)
+            loss = criterion(output, target)
+            if iter % config.print_freq == 0:
+                print(f'iter {iter} loss {loss}')
+
+
+def compute_acc(output, target):
+    return mean([1 if abs(output[i] - target[i]) < 0.5 else 0 for i, x in enumerate(output)])
 
 
 if __name__ == '__main__':

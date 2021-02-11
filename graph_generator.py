@@ -15,7 +15,6 @@ def solve_by_csp(adj_matr, n_colors):
     status = solver.Solve(model)
     if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:
         solution = [solver.Value(x) for x in model_vars]
-        print(f'solved for {n_colors}')
         return solution
     else:
         return None

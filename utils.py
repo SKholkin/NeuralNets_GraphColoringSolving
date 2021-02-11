@@ -25,3 +25,19 @@ def adj_list_to_adj_matr(adj_list):
         for j in vertex_info:
             adj_matr[i][j] = 1
     return adj_matr
+
+
+class AverageMetr:
+    def __init__(self):
+        self.total = 0
+        self.count = 0
+
+    def update(self, value):
+        self.total += value
+        self.count += 1
+
+    def avg(self):
+        if self.count > 0:
+            return self.total / self.count
+        else:
+            return 0

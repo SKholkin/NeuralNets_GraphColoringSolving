@@ -50,8 +50,8 @@ class ColorDataset(Dataset):
         return len(self.basic_data)
 
 
-def prepare_folders(root, clear_up=False, is_train=True):
-    mode = 'train' if is_train else 'test'
+def prepare_folders(root, clear_up=False, is_test=False):
+    mode = 'test' if is_test else 'train'
     if not os.path.exists(root):
         raise RuntimeError('root dataset path do not exist')
     if not os.path.exists(os.path.join(root, 'ColorDataset')):
@@ -60,11 +60,11 @@ def prepare_folders(root, clear_up=False, is_train=True):
         os.mkdir(os.path.join(root, 'ColorDataset', f'basic_{mode}'))
     else:
         if clear_up:
-            [os.remove(os.path.join(root, 'ColorDataset', f'basic_{mode}', f) for f in os.listdir(
-                os.path.join(root, 'ColorDataset', f'basic_{mode}')))]
+            [os.remove(os.path.join(root, 'ColorDataset', f'basic_{mode}', f)) for f in os.listdir(
+                os.path.join(root, 'ColorDataset', f'basic_{mode}'))]
     if not os.path.exists(os.path.join(root, 'ColorDataset', f'adv_{mode}')):
         os.mkdir(os.path.join(root, 'ColorDataset', f'adv_{mode}'))
     else:
         if clear_up:
-            [os.remove(os.path.join(root, 'ColorDataset', f'adv_{mode}', f) for f in os.listdir(
-                os.path.join(root, 'ColorDataset', f'adv_{mode}')))]
+            [os.remove(os.path.join(root, 'ColorDataset', f'adv_{mode}', f)) for f in os.listdir(
+                os.path.join(root, 'ColorDataset', f'adv_{mode}'))]

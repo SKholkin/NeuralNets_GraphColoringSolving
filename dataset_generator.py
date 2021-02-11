@@ -103,10 +103,11 @@ def create_adversarial_graph_gnn_gcp(basic_graph, n_colors):
         return None
 
 
-def generate_dataset_gnn_gcp(nmin, nmax, samples, root, is_train):
-    mode = 'train' if is_train else 'test'
+def generate_dataset_gnn_gcp(nmin, nmax, samples, root, is_test):
+    mode = 'test' if is_test else 'train'
+    print(f'Creating {mode} dataset...')
     start = time.time()
-    prepare_folders(root)
+    prepare_folders(root, is_test=is_test)
     print_freq = 10
     for iter in range(samples):
         n = np.random.randint(nmin, nmax)
@@ -130,13 +131,11 @@ if __name__ == '__main__':
     parser.add_argument('--nmin', type=int, help='Minimal number of vertices in dataset', default=10)
     parser.add_argument('--nmax', type=int, help='Maximum number of vertices in dataset', default=20)
     parser.add_argument('--root', type=str, help='Dataset root path')
-    parser.add_argument('--is_train', type=bool, help='mode of dataset generation')
+    parser.add_argument('--test', dest='is_test', action='store_true', help='turn on for creating test dataset')
     args = parser.parse_args()
-    if args.is_train is None:
-        raise AttributeError('Please choose mode of dataset generating (true for train/false for test)')
     generate_dataset_gnn_gcp(
         nmin=args.nmin,
         nmax=args.nmax,
         samples=args.samples,
         root=args.root,
-        is_train=args.is_train)
+        is_test=args.is_test)
