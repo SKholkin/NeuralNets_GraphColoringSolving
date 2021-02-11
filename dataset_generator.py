@@ -103,7 +103,8 @@ def create_adversarial_graph_gnn_gcp(basic_graph, n_colors):
         return None
 
 
-def generate_dataset_gnn_gcp(nmin, nmax, samples, root):
+def generate_dataset_gnn_gcp(nmin, nmax, samples, root, is_train):
+    mode = 'train' if is_train else 'test'
     start = time.time()
     prepare_folders(root)
     print_freq = 10
@@ -111,9 +112,10 @@ def generate_dataset_gnn_gcp(nmin, nmax, samples, root):
         n = np.random.randint(nmin, nmax)
         basic_graph, n_colors = basic_instance_gen(n)
         adversarial_graph, n_adv_colors = create_adversarial_graph_my_version(basic_graph, n_colors)
-        write_instance(basic_graph, n_colors, os.path.join(root, 'ColorDataset', 'basic', f'graph_{iter}.pt'))
+        write_instance(basic_graph, n_colors, os.path.join(root, 'ColorDataset', f'basic_{mode}', f'graph_{iter}.pt'))
         if adversarial_graph is not None:
-            write_instance(adversarial_graph, n_adv_colors, os.path.join(root, 'ColorDataset', 'adv', f'graph_{iter}.pt'))
+            write_instance(adversarial_graph, n_adv_colors,
+                           os.path.join(root, 'ColorDataset', f'adv_{mode}', f'graph_{iter}.pt'))
         else:
             print('Not found an adversarial graph')
         if iter % print_freq == 0:
@@ -128,5 +130,13 @@ if __name__ == '__main__':
     parser.add_argument('--nmin', type=int, help='Minimal number of vertices in dataset', default=10)
     parser.add_argument('--nmax', type=int, help='Maximum number of vertices in dataset', default=20)
     parser.add_argument('--root', type=str, help='Dataset root path')
+    parser.add_argument('--is_train', type=bool, help='mode of dataset generation')
     args = parser.parse_args()
-    generate_dataset_gnn_gcp(nmin=args.nmin, nmax=args.nmax, samples=args.samples, root=args.root)
+    if args.is_train is None:
+        raise AttributeError('Please choose mode of dataset generating (true for train/false for test)')
+    generate_dataset_gnn_gcp(
+        nmin=args.nmin,
+        nmax=args.nmax,
+        samples=args.samples,
+        root=args.root,
+        is_train=args.is_train)

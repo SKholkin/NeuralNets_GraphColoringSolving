@@ -19,14 +19,15 @@ def _transform_to_instance(adj_matr, n_colors, chromatic_numb, v_size=30, c_size
 
 class ColorDataset(Dataset):
 
-    def __init__(self, root):
+    def __init__(self, root, is_train=True):
         self.root = root
         self.max_size = 30
         self.max_n_colors = 11
-        self.adv_graph_data = [torch.load(os.path.join(root, 'ColorDataset', 'adv', f)) for f in
-                               os.listdir(os.path.join(root, 'ColorDataset', 'adv'))]
-        self.basic_graph_data = [torch.load(os.path.join(root, 'ColorDataset', 'basic', f)) for f in
-                                 os.listdir(os.path.join(root, 'ColorDataset', 'basic'))]
+        mode = 'train' if is_train else 'test'
+        self.adv_graph_data = [torch.load(os.path.join(root, 'ColorDataset', f'adv_{mode}', f)) for f in
+                               os.listdir(os.path.join(root, 'ColorDataset', f'adv_{mode}'))]
+        self.basic_graph_data = [torch.load(os.path.join(root, 'ColorDataset', f'basic_{mode}', f)) for f in
+                                 os.listdir(os.path.join(root, 'ColorDataset', f'basic_{mode}'))]
         # in data graphs encoded through adj lists
         self.basic_data = []
         for i in range(len(self.basic_graph_data)):
@@ -49,20 +50,21 @@ class ColorDataset(Dataset):
         return len(self.basic_data)
 
 
-def prepare_folders(root, clear_up=False):
+def prepare_folders(root, clear_up=False, is_train=True):
+    mode = 'train' if is_train else 'test'
     if not os.path.exists(root):
         raise RuntimeError('root dataset path do not exist')
     if not os.path.exists(os.path.join(root, 'ColorDataset')):
         os.mkdir(os.path.join(root, 'ColorDataset'))
-    if not os.path.exists(os.path.join(root, 'ColorDataset', 'basic')):
-        os.mkdir(os.path.join(root, 'ColorDataset', 'basic'))
+    if not os.path.exists(os.path.join(root, 'ColorDataset', f'basic_{mode}')):
+        os.mkdir(os.path.join(root, 'ColorDataset', f'basic_{mode}'))
     else:
         if clear_up:
-            [os.remove(os.path.join(root, 'ColorDataset', 'basic', f) for f in os.listdir(
-                os.path.join(root, 'ColorDataset', 'basic')))]
-    if not os.path.exists(os.path.join(root, 'ColorDataset', 'adv')):
-        os.mkdir(os.path.join(root, 'ColorDataset', 'adv'))
+            [os.remove(os.path.join(root, 'ColorDataset', f'basic_{mode}', f) for f in os.listdir(
+                os.path.join(root, 'ColorDataset', f'basic_{mode}')))]
+    if not os.path.exists(os.path.join(root, 'ColorDataset', f'adv_{mode}')):
+        os.mkdir(os.path.join(root, 'ColorDataset', f'adv_{mode}'))
     else:
         if clear_up:
-            [os.remove(os.path.join(root, 'ColorDataset', 'adv', f) for f in os.listdir(
-                os.path.join(root, 'ColorDataset', 'adv')))]
+            [os.remove(os.path.join(root, 'ColorDataset', f'adv_{mode}', f) for f in os.listdir(
+                os.path.join(root, 'ColorDataset', f'adv_{mode}')))]
