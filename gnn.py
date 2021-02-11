@@ -11,7 +11,6 @@ class GraphNeuralNetworkGCP(nn.Module):
         self.max_n_colors = max_n_colors
         self.timesteps = timesteps
         # very small lstm cells
-        # ToDo: rnn outputs vt sized like inputs (but vt should be d when outputs 2d)
         # let only color messages to update vertex embeddings
         self.rnn_v = nn.LSTMCell(input_size=2 * max_size, hidden_size=max_size)
         self.rnn_c = nn.LSTMCell(input_size=max_n_colors, hidden_size=max_n_colors)
