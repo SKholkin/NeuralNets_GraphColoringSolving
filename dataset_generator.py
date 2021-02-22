@@ -12,7 +12,7 @@ import argparse
 
 
 a = str.maketrans('- :.', '____')
-logging.basicConfig(filename=f"log/{str(datetime.datetime.today()).translate(str.maketrans('- :.', '____'))}.log",
+logging.basicConfig(filename=f"log_dir/{str(datetime.datetime.today()).translate(str.maketrans('- :.', '____'))}.log",
                     filemode='w')
 
 

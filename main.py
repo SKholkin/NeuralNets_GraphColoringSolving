@@ -68,14 +68,19 @@ def main_worker(config):
     optimizer = Adam(model.parameters(), lr=config.lr)
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=True, num_workers=0)
-    train(model, optimizer, config, train_loader, val_loader, criterion)
+    if config.mode == 'train':
+        train(model, optimizer, config, train_loader, val_loader, criterion)
+    else:
+        validate(model, optimizer, config, val_loader, config, 0)
 
 
 # ToDo: calculate accuracy
 def train(model, optimizer, config, train_loader, val_loader, criterion):
+    best_acc = 0
     for epoch in range(config.epochs):
         print(f'Training epoch {epoch}')
         avg_loss = AverageMetr()
+        avg_acc = AverageMetr()
         epoch_len = int(len(train_loader))
         for iter, (Mvv_batch, n_colors_batch, chrom_numb_batch) in enumerate(train_loader):
             optimizer.zero_grad()
@@ -87,16 +92,25 @@ def train(model, optimizer, config, train_loader, val_loader, criterion):
             acc = compute_acc(output, target)
             loss.backward()
             optimizer.step()
+
+            avg_loss.update(loss)
+            avg_acc.update(acc)
             if iter % config.print_freq == 0:
                 print(f'{iter}/{epoch_len} iter Loss: {loss}({avg_loss.avg()}) Acc: {acc}')
+        config.tb.add_scalar('Train/Loss', avg_loss.avg(), epoch)
+        config.tb.add_scalar('Train/Acc', avg_acc.avg(), epoch)
+        print(f'Average epoch {epoch}: loss {avg_loss.avg()}:acc {avg_acc.avg()}')
         if epoch % config.save_freq == 0:
             torch.save(model, osp.join(config.log_dir, f'epoch_{epoch}'))
             print('Successfully saved checkpoint')
         if epoch % config.test_freq == 0:
-            validate(model, val_loader, criterion, config)
+            val_loss, val_acc = validate(model, val_loader, criterion, config, epoch)
+            best_acc = max(best_acc, val_acc)
 
 
-def validate(model, val_loader, criterion, config):
+def validate(model, val_loader, criterion, config, epoch):
+    avg_loss = AverageMetr()
+    avg_acc = AverageMetr()
     print('Validating...')
     with torch.no_grad():
         for iter, (Mvv_batch, n_colors_batch, chrom_numb_batch) in enumerate(val_loader):
@@ -105,8 +119,15 @@ def validate(model, val_loader, criterion, config):
                              for batch_elem in range(n_colors_batch.size(0))],
                              dtype=float32)
             loss = criterion(output, target)
+            acc = compute_acc(output, target)
+            avg_loss.update(loss)
+            avg_acc.update(acc)
             if iter % config.print_freq == 0:
-                print(f'iter {iter} loss {loss}')
+                print(f'iter {iter} Loss {loss} Acc {acc}')
+    config.tb.add_scalar('Val/Loss', avg_loss.avg(), epoch)
+    config.tb.add_scalar('Val/Acc', avg_acc.avg(), epoch)
+    print(f'Average Loss {avg_loss.avg()} Acc {avg_acc.avg()}\n')
+    return avg_loss.avg(), avg_acc.avg()
 
 
 def compute_acc(output, target):
