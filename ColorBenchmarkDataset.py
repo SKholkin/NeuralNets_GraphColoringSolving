@@ -66,5 +66,7 @@ class ColorBenchmark(Dataset, ABC):
                 in_edges = [str(int(pair.split(' ')[1]) - 1) for pair in edges]
                 out_edges = [str(int(pair.split(' ')[2]) - 1) for pair in edges]
 
+
+
             datalist.append({'vertices': main_info.split(' ')[2], 'edges': (in_edges, out_edges)})
             torch.save(datalist[-1], osp.join('datasets', 'ColorBenchmark', 'processed', processed_file_name))

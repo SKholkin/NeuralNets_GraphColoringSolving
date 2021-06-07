@@ -3,7 +3,6 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.nn import BCELoss
-from torch import tensor, float32
 from torch.utils.tensorboard import SummaryWriter
 import json
 from addict import Dict
@@ -71,7 +70,7 @@ def main_worker(config):
     if config.mode == 'train':
         train(model, optimizer, config, train_loader, val_loader, criterion)
     else:
-        validate(model, optimizer, config, val_loader, config, 0)
+        validate(model, val_loader, criterion, config, 0)
 
 
 # ToDo: calculate accuracy
@@ -82,14 +81,11 @@ def train(model, optimizer, config, train_loader, val_loader, criterion):
         avg_loss = AverageMetr()
         avg_acc = AverageMetr()
         epoch_len = int(len(train_loader))
-        for iter, (Mvv_batch, n_colors_batch, chrom_numb_batch) in enumerate(train_loader):
+        for iter, (Mvv_batch, n_colors_batch, is_solvable_batch) in enumerate(train_loader):
             optimizer.zero_grad()
             output = model(Mvv_batch, n_colors_batch)
-            target = tensor([1 if n_colors_batch[batch_elem] >= chrom_numb_batch[batch_elem] else 0
-                             for batch_elem in range(n_colors_batch.size(0))],
-                            dtype=float32)
-            loss = criterion(output, target)
-            acc = compute_acc(output, target)
+            loss = criterion(output, is_solvable_batch.float())
+            acc = compute_acc(output, is_solvable_batch.float())
             loss.backward()
             optimizer.step()
 
@@ -113,13 +109,10 @@ def validate(model, val_loader, criterion, config, epoch):
     avg_acc = AverageMetr()
     print('Validating...')
     with torch.no_grad():
-        for iter, (Mvv_batch, n_colors_batch, chrom_numb_batch) in enumerate(val_loader):
+        for iter, (Mvv_batch, n_colors_batch, is_solvable_batch) in enumerate(val_loader):
             output = model(Mvv_batch, n_colors_batch)
-            target = tensor([1 if n_colors_batch[batch_elem] >= chrom_numb_batch[batch_elem] else 0
-                             for batch_elem in range(n_colors_batch.size(0))],
-                             dtype=float32)
-            loss = criterion(output, target)
-            acc = compute_acc(output, target)
+            loss = criterion(output, is_solvable_batch.float())
+            acc = compute_acc(output, is_solvable_batch.float())
             avg_loss.update(loss)
             avg_acc.update(acc)
             if iter % config.print_freq == 0:

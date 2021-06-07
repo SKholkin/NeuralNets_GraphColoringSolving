@@ -14,7 +14,6 @@ class GraphNeuralNetworkGCP(nn.Module):
         # let only color messages to update vertex embeddings
         self.rnn_v = nn.LSTMCell(input_size=2 * max_size, hidden_size=max_size)
         self.rnn_c = nn.LSTMCell(input_size=max_n_colors, hidden_size=max_n_colors)
-        a = list(self.parameters())
         # init Mvv matmul layer (requires_grad=False)
         self.c_msg_mlp = nn.Sequential(
             nn.Linear(in_features=max_n_colors, out_features=max_n_colors),

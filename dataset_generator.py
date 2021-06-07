@@ -19,17 +19,16 @@ logging.basicConfig(filename=f"log_dir/{str(datetime.datetime.today()).translate
 def get_edges(adj_matr, is_edge=True):
     # if is_edge = False then choose not_edges
     is_edge = 1 if is_edge else 0
-    not_edges = []
+    result = []
     for i in range(len(adj_matr)):
         for j in range(i + 1, len(adj_matr)):
             if adj_matr[i][j] == is_edge:
-                not_edges.append((i, j))
-    return not_edges
+                result.append((i, j))
+    return result
 
 
-def write_instance(graph, n_colors, path):
-    to_save = [n_colors]
-    to_save += adj_matr_to_adj_list(graph)
+def write_instance(graph, n_colors, is_solvable, path):
+    to_save = {'n_colors': n_colors, 'is_solvable': is_solvable, 'adj_list': adj_matr_to_adj_list(graph)}
     save(to_save, path)
 
 
@@ -62,6 +61,7 @@ def create_adversarial_graph_my_version(basic_graph, n_colors):
                     new_solution = solve_by_csp(new_graph, n_colors)
                 return new_graph, n_colors
     else:
+        print('\n\n\nRUINING SOLVABLE GRAPH GENERATION\n\n\n')
         edges = get_edges(basic_graph, is_edge=True)
         edges = random_sort_edges(edges)
         new_graph = basic_graph.copy()
@@ -104,6 +104,7 @@ def create_adversarial_graph_gnn_gcp(basic_graph, n_colors):
 
 
 def generate_dataset_gnn_gcp(nmin, nmax, samples, root, is_test):
+    # test and train modes differ only if folder name
     mode = 'test' if is_test else 'train'
     print(f'Creating {mode} dataset...')
     start = time.time()
@@ -113,10 +114,10 @@ def generate_dataset_gnn_gcp(nmin, nmax, samples, root, is_test):
         n = np.random.randint(nmin, nmax)
         basic_graph, n_colors = basic_instance_gen(n)
         adversarial_graph, n_adv_colors = create_adversarial_graph_my_version(basic_graph, n_colors)
-        write_instance(basic_graph, n_colors, os.path.join(root, 'ColorDataset', f'basic_{mode}', f'graph_{iter}.pt'))
         if adversarial_graph is not None:
-            write_instance(adversarial_graph, n_adv_colors,
-                           os.path.join(root, 'ColorDataset', f'adv_{mode}', f'graph_{iter}.pt'))
+            write_instance(basic_graph, n_colors, True, os.path.join(root, 'ColorDataset', mode, f'graph_{2 * iter}.pt'))
+            write_instance(adversarial_graph, n_colors, False,
+                           os.path.join(root, 'ColorDataset', mode,  f'graph_{2 * iter + 1}.pt'))
         else:
             print('Not found an adversarial graph')
         if iter % print_freq == 0:

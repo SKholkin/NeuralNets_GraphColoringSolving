@@ -1,5 +1,4 @@
 import numpy as np
-from utils import print_weight_matrix
 from ortools.sat.python import cp_model
 
 
@@ -45,9 +44,3 @@ def basic_instance_gen(n):
         n_colors += 1
         solution = solve_by_csp(basic_graph, n_colors)
     return basic_graph, n_colors
-
-#if __name__ == '__main__':
-#    n = 10
-#    adj_matr = basic_graph_gen(n, 0.4)
-#    print_weight_matrix(adj_matr)
-#    solve_by_csp(adj_matr, n_colors=3)
