@@ -2,18 +2,11 @@ import numpy as np
 import os
 import time
 from torch import save
-import logging
-import datetime
-from utils import print_weight_matrix, adj_matr_to_adj_list
-from ColorDataset import prepare_folders, ColorDataset
+from utils import adj_matr_to_adj_list
+from ColorDataset import prepare_folders
 from graph_generator import solve_by_csp, basic_instance_gen
 import random
 import argparse
-
-
-a = str.maketrans('- :.', '____')
-logging.basicConfig(filename=f"log_dir/{str(datetime.datetime.today()).translate(str.maketrans('- :.', '____'))}.log",
-                    filemode='w')
 
 
 def get_edges(adj_matr, is_edge=True):
