@@ -41,6 +41,7 @@ class GraphNeuralNetworkGCP(nn.Module):
 
     def forward(self, Mvv, n_colors):
         batch_size = Mvv.size(0)
+        Mvv += torch.eye(Mvv.size(1)).unsqueeze(0).repeat(batch_size, 1, 1)
         Mvc = torch.tensor([[[1 if j < n_colors[batch_elem] else 0
                               for j in range(self.max_n_colors)]
                              for i in range(self.max_size)]
@@ -69,7 +70,8 @@ class GraphNeuralNetworkGCP(nn.Module):
 
             for i in range(self.max_size):
                 for lstm_num, lstm_cell in enumerate(self.rnn_v):
-                    vh_i, v_memory_i = lstm_cell(self.dropout(rnn_vertex_inputs[:,i,:] if lstm_num == 0 else vh[lstm_num - 1][:,i,:]), (vh[lstm_num][:,i,:], v_memory[lstm_num][:,i,:]))
+                    vh_i, v_memory_i = lstm_cell(rnn_vertex_inputs[:,i,:] if lstm_num == 0 else vh[lstm_num - 1][:,i,:],
+                                                 (vh[lstm_num][:,i,:], v_memory[lstm_num][:,i,:]))
                     vh_by_vertex[lstm_num].append(vh_i)
                     v_memory_by_vertex[lstm_num].append(v_memory_i)
 
