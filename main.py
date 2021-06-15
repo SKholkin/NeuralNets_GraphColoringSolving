@@ -11,6 +11,7 @@ from os import mkdir
 import datetime
 import shutil
 from statistics import mean
+import numpy as np
 
 from ColorDataset import ColorDataset
 from gnn import GraphNeuralNetworkGCP
@@ -87,6 +88,9 @@ def train(model, optimizer, config, train_loader, val_loader, criterion):
             loss = criterion(output, is_solvable_batch.float())
             acc = compute_acc(output, is_solvable_batch.float())
             loss.backward()
+            print(f'pred var {torch.var(output)}')
+            print(f'mean gradients {np.mean(np.array([torch.flatten(param.grad.abs()).mean() for param in model.parameters()]))}')
+
             optimizer.step()
 
             avg_loss.update(loss)

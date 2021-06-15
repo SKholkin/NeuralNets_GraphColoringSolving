@@ -5,8 +5,9 @@ from torch.distributions.normal import Normal
 
 from functools import reduce
 
+
 class GraphNeuralNetworkGCP(nn.Module):
-    def __init__(self, max_size, max_n_colors, inner_dim=32, timesteps=32):
+    def __init__(self, max_size, max_n_colors, inner_dim=64, timesteps=32):
         super().__init__()
         self.max_size = max_size
         self.max_n_colors = max_n_colors
@@ -14,11 +15,12 @@ class GraphNeuralNetworkGCP(nn.Module):
         self.inner_dim = inner_dim
         # very small lstm cells
         # let only color messages to update vertex embeddings
-        self.rnn_v = [nn.LSTMCell(input_size=2 * self.inner_dim, hidden_size=self.inner_dim),
-                      nn.LSTMCell(input_size=self.inner_dim, hidden_size=self.inner_dim)]
+        #self.rnn_v = [nn.LSTMCell(input_size=2 * self.inner_dim, hidden_size=self.inner_dim),
+        #              nn.LSTMCell(input_size=self.inner_dim, hidden_size=self.inner_dim)]
+        self.rnn_v = [nn.LSTMCell(input_size=2 * self.inner_dim, hidden_size=self.inner_dim)]
         self.rnn_c = nn.LSTMCell(input_size=self.inner_dim, hidden_size=self.inner_dim)
         self.dropout = nn.Dropout(p=0.3)
-        self.v_init = torch.nn.Parameter(Normal(0, 1).sample([self.inner_dim]))
+        self.v_init = torch.nn.Parameter(Normal(0, 1).sample([self.inner_dim]) / torch.sqrt(torch.Tensor([self.inner_dim])))
         # init Mvv matmul layer (requires_grad=False)
         self.c_msg_mlp = nn.Sequential(
             nn.Linear(in_features=self.inner_dim, out_features=100),
@@ -55,6 +57,8 @@ class GraphNeuralNetworkGCP(nn.Module):
         ch = uniform.sample(torch.Size([batch_size, self.max_n_colors, self.inner_dim]))
         v_memory = [torch.zeros(torch.Size([batch_size, self.max_size, self.inner_dim])) for item in self.rnn_v]
         c_memory = torch.zeros(torch.Size([batch_size, self.max_n_colors, self.inner_dim]))
+
+        print(f'vertex first embeddings var {(vh[-1].mean(1))}')
         # run message passing in graph
         for iter in range(self.timesteps):
             muled_by_adj_matr_v = torch.matmul(Mvv, vh[-1])
@@ -88,12 +92,12 @@ class GraphNeuralNetworkGCP(nn.Module):
              for lstm_num, item in enumerate(v_memory)]
             ch = reduce(lambda a, b: torch.cat((a, b.unsqueeze(1)), dim=1), ch_by_vertex[1:], ch_by_vertex[0].unsqueeze(1))
             c_memory = reduce(lambda a, b: torch.cat((a, b.unsqueeze(1)), dim=1), c_memory_by_vertex[1:], c_memory_by_vertex[0].unsqueeze(1))
+            print(f'vertex lstm {iter} activations var {torch.var(vh[-1], dim=1).mean(1)}')
 
-        #print(f'vertex lstm activations var {torch.var(vh[-1].mean(2), dim=1)}')
+        print(f'vertex lstm activations var {torch.var(vh[-1], dim=1).mean(1)}')
         # compute final prediction
         x = self.dropout(vh[-1])
         vote = self.v_vote_mlp(x)
         mean_vote = torch.mean(vote, 1)
         pred = torch.sigmoid(mean_vote).squeeze()
-        print(f'pred {torch.var(pred)}')
         return pred
