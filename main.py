@@ -88,15 +88,13 @@ def train(model, optimizer, config, train_loader, val_loader, criterion):
             loss = criterion(output, is_solvable_batch.float())
             acc = compute_acc(output, is_solvable_batch.float())
             loss.backward()
-            print(f'pred var {torch.var(output)}')
-            print(f'mean gradients {np.mean(np.array([torch.flatten(param.grad.abs()).mean() for param in model.parameters()]))}')
 
             optimizer.step()
 
             avg_loss.update(loss)
             avg_acc.update(acc)
             if iter % config.print_freq == 0:
-                print(f'{iter}/{epoch_len} iter Loss: {loss}({avg_loss.avg()}) Acc: {acc}')
+                print(f'{iter}/{epoch_len} iter Loss: {loss}({avg_loss.avg()}) Acc: {acc} Var: {torch.var(output)}')
         config.tb.add_scalar('Train/Loss', avg_loss.avg(), epoch)
         config.tb.add_scalar('Train/Acc', avg_acc.avg(), epoch)
         print(f'Average epoch {epoch}: loss {avg_loss.avg()}:acc {avg_acc.avg()}')

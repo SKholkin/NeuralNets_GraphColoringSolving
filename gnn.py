@@ -58,7 +58,6 @@ class GraphNeuralNetworkGCP(nn.Module):
         v_memory = [torch.zeros(torch.Size([batch_size, self.max_size, self.inner_dim])) for item in self.rnn_v]
         c_memory = torch.zeros(torch.Size([batch_size, self.max_n_colors, self.inner_dim]))
 
-        print(f'vertex first embeddings var {(vh[-1].mean(1))}')
         # run message passing in graph
         for iter in range(self.timesteps):
             muled_by_adj_matr_v = torch.matmul(Mvv, vh[-1])
@@ -92,9 +91,7 @@ class GraphNeuralNetworkGCP(nn.Module):
              for lstm_num, item in enumerate(v_memory)]
             ch = reduce(lambda a, b: torch.cat((a, b.unsqueeze(1)), dim=1), ch_by_vertex[1:], ch_by_vertex[0].unsqueeze(1))
             c_memory = reduce(lambda a, b: torch.cat((a, b.unsqueeze(1)), dim=1), c_memory_by_vertex[1:], c_memory_by_vertex[0].unsqueeze(1))
-            print(f'vertex lstm {iter} activations var {torch.var(vh[-1], dim=1).mean(1)}')
 
-        print(f'vertex lstm activations var {torch.var(vh[-1], dim=1).mean(1)}')
         # compute final prediction
         x = self.dropout(vh[-1])
         vote = self.v_vote_mlp(x)
