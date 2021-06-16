@@ -38,8 +38,7 @@ class GraphNeuralNetworkGCP(nn.Module):
         self.v_vote_mlp = nn.Sequential(
             nn.Linear(in_features=self.inner_dim, out_features=self.inner_dim // 4),
             nn.Sigmoid(),
-            nn.Linear(in_features=self.inner_dim // 4, out_features=1),
-            nn.Sigmoid()
+            nn.Linear(in_features=self.inner_dim // 4, out_features=1)
         )
 
     def forward(self, Mvv, n_colors):
