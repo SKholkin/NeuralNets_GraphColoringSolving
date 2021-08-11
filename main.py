@@ -14,12 +14,14 @@ from statistics import mean
 import numpy as np
 
 from ColorDataset import ColorDataset
-from gnn import GraphNeuralNetworkGCP
+from models.gcp_network import GraphNeuralNetworkGCP
 from utils import AverageMetr
 
 
 def configure_logging(config):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    if config.log_dir is None:
+        config.log_dir = 'log_dir'
     config.log_dir = config.log_dir + '/' + current_time
     mkdir(config.log_dir)
     shutil.copy(args.config, config.log_dir + '/' + 'config.json')
