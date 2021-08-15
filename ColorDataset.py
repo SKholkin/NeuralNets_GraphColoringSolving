@@ -20,15 +20,13 @@ class ColorDataset(Dataset):
     def __init__(self, root, is_train=True):
         self.root = root
         self.max_size = 30
-        self.max_n_colors = 11
+        self.max_n_colors = 7
         mode = 'train' if is_train else 'test'
         self.basic_data = [torch.load(os.path.join(root, 'ColorDataset', mode, item)) for item in
                                os.listdir(os.path.join(root, 'ColorDataset', mode))]
         self.data = []
         for graph_info in self.basic_data:
             self.data.append((graph_info['adj_list'], graph_info['n_colors'], graph_info['is_solvable']))
-            #self.data += [(graph_info[1:], n_color, graph_info[0]) for n_color
-            #              in range(max(2, graph_info[0] - 2), graph_info[0] + 3)]
 
     def __getitem__(self, idx):
         # get instance through transformation

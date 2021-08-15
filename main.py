@@ -15,6 +15,7 @@ import numpy as np
 
 from ColorDataset import ColorDataset
 from models.gcp_network import GraphNeuralNetworkGCP
+from models.gcn import GCN
 from utils import AverageMetr
 
 
@@ -34,9 +35,9 @@ def get_argument_parser():
     parser.add_argument('--config', type=str, help='config path')
     parser.add_argument('--resume', type=str, help='resuming checkpoint')
     parser.add_argument('--data', type=str, help='dataset path')
-    parser.add_argument('--save_freq', type=int, help='frequency of saving checkpoints in epochs')
-    parser.add_argument('--print_freq', type=int, default=100, help='step of printing statistics')
-    parser.add_argument('--log_dir', type=str, help='directory for logging and saving checkpoints')
+    parser.add_argument('--save_freq', type=int, help='frequency of saving checkpoints in epochs', default=5)
+    parser.add_argument('--print_freq', type=int, help='step of printing statistics', default=10)
+    parser.add_argument('--log_dir', type=str, help='directory for logging and saving checkpoints', default='log_dir')
     parser.add_argument('--test_freq', type=int, default=5, help='test every (test_freq) epoch')
     return parser
 
@@ -64,7 +65,8 @@ def main_worker(config):
     train_dataset = ColorDataset('datasets', is_train=True)
     val_dataset = ColorDataset('datasets', is_train=False)
     criterion = BCELoss()
-    model = GraphNeuralNetworkGCP(train_dataset.max_size, train_dataset.max_n_colors, timesteps=config.timesteps)
+    #model = GraphNeuralNetworkGCP(train_dataset.max_size, train_dataset.max_n_colors, timesteps=config.timesteps)
+    model = GCN(train_dataset.max_size, train_dataset.max_n_colors, dim_per_color=10)
     if config.resume is not None:
         model = torch.load(config.resume)
     optimizer = Adam(model.parameters(), lr=config.lr)
