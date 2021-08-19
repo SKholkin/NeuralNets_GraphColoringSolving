@@ -1,9 +1,18 @@
 import torch
 from torch import nn
 from functools import reduce
+from copy import deepcopy
+
+
+def masked_softmax(mask, x, dim=2):
+    # replace 0 with -1e+06 in mask matrix (exp(1e+06) -> 0)
+    mask = deepcopy(mask)
+    mask = torch.where(mask == 0.0, torch.tensor(-1e+06, dtype=torch.float32), x)
+    return nn.functional.softmax(torch.mul(mask, x), dim=dim)
+
 
 class RecGNN(nn.Module):
-    def __init__(self, inner_dim=64, timesteps=32):
+    def __init__(self, inner_dim=64, timesteps=32, attention=False):
         super().__init__()
         self.timesteps = timesteps
         self.inner_dim = inner_dim
@@ -22,6 +31,12 @@ class RecGNN(nn.Module):
             nn.Linear(in_features=100, out_features=self.inner_dim),
             nn.ReLU()
         )
+        self.attention = attention
+        if attention:
+            self.attn_mlp = nn.Sequential(
+                nn.Linear(in_features=2 * self.inner_dim, out_features=1),
+                nn.LeakyReLU()
+                )
 
     def forward(self, Mvv, Mvc, vh, ch):
         batch_size = Mvv.size(0)
@@ -30,7 +45,16 @@ class RecGNN(nn.Module):
         v_memory = [torch.zeros(torch.Size([batch_size, max_size, self.inner_dim])) for item in self.rnn_v]
         c_memory = torch.zeros(torch.Size([batch_size, max_n_colors, self.inner_dim]))
         for iter in range(self.timesteps):
-            muled_by_adj_matr_v = torch.matmul(Mvv, vh[-1])
+            attn_weights = Mvv
+
+            if self.attention:
+                concat_tensor_1 = vh[-1].unsqueeze(1).repeat([1, vh[-1].size(1), 1, 1])
+                attn_inputs = torch.cat((concat_tensor_1, concat_tensor_1.transpose(1, 2)), dim=3)
+                a = self.attn_mlp(attn_inputs).squeeze(3)
+                attn_weights = torch.mul(Mvv, a)
+                attn_weights = masked_softmax(Mvv, a)
+                
+            muled_by_adj_matr_v = torch.matmul(attn_weights, vh[-1])
             color_iter_msg = self.c_msg_mlp(ch)
             vertex_iter_msg = self.v_msg_mlp(vh[-1])
             muled_c_msg = torch.matmul(Mvc, color_iter_msg)

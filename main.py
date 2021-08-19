@@ -65,8 +65,7 @@ def main_worker(config):
     train_dataset = ColorDataset('datasets', is_train=True)
     val_dataset = ColorDataset('datasets', is_train=False)
     criterion = BCELoss()
-    #model = GraphNeuralNetworkGCP(train_dataset.max_size, train_dataset.max_n_colors, timesteps=config.timesteps)
-    model = GCN(train_dataset.max_size, train_dataset.max_n_colors, dim_per_color=10)
+    model = GraphNeuralNetworkGCP(train_dataset.max_size, train_dataset.max_n_colors, timesteps=config.timesteps)
     if config.resume is not None:
         model = torch.load(config.resume)
     optimizer = Adam(model.parameters(), lr=config.lr)

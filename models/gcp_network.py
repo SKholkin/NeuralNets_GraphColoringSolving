@@ -19,7 +19,7 @@ class GraphNeuralNetworkGCP(nn.Module):
         self.rnn_c = nn.LSTMCell(input_size=self.inner_dim, hidden_size=self.inner_dim)
         self.dropout = nn.Dropout(p=0.3)
         self.v_init = torch.nn.Parameter(Normal(0, 1).sample([self.inner_dim]) / torch.sqrt(torch.Tensor([self.inner_dim])))
-        self.rec_gnn = RecGNN(inner_dim, timesteps)
+        self.rec_gnn = RecGNN(inner_dim, timesteps, attention=True)
         # init Mvv matmul layer (requires_grad=False)
         self.c_msg_mlp = nn.Sequential(
             nn.Linear(in_features=self.inner_dim, out_features=100),
