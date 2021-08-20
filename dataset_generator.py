@@ -2,6 +2,7 @@ import numpy as np
 import os
 import time
 from torch import save
+import torch
 from utils import adj_matr_to_adj_list
 from ColorDataset import prepare_folders
 from graph_generator import solve_by_csp, basic_instance_gen
@@ -18,6 +19,11 @@ def get_edges(adj_matr, is_edge=True):
             if adj_matr[i][j] == is_edge:
                 result.append((i, j))
     return result
+
+
+def write_dataset_info(nmin, nmax, max_n_colors, mode, path):
+    to_save = {'nmin': nmin, 'nmax': nmax, 'max_n_colors': max_n_colors}
+    save(to_save, os.path.join(path, f'{mode}_info.pt'))
 
 
 def write_instance(graph, n_colors, is_solvable, path):
@@ -103,10 +109,13 @@ def generate_dataset_gnn_gcp(nmin, nmax, samples, root, is_test):
     start = time.time()
     prepare_folders(root, is_test=is_test)
     print_freq = 10
+    max_n_colors = 0
     for iter in range(samples):
         n = np.random.randint(nmin, nmax)
         basic_graph, n_colors = basic_instance_gen(n)
         adversarial_graph, n_adv_colors = create_adversarial_graph_my_version(basic_graph, n_colors)
+        if n_colors > max_n_colors:
+            max_n_colors = n_colors
         if adversarial_graph is not None:
             write_instance(basic_graph, n_colors, True, os.path.join(root, 'ColorDataset', mode, f'graph_{2 * iter}.pt'))
             write_instance(adversarial_graph, n_colors, False,
@@ -115,6 +124,7 @@ def generate_dataset_gnn_gcp(nmin, nmax, samples, root, is_test):
             print('Not found an adversarial graph')
         if iter % print_freq == 0:
             print(f'{iter}/{samples} pairs generated')
+    write_dataset_info(nmin, nmax, max_n_colors, mode, os.path.join(root, 'ColorDataset'))
     end = time.time()
     print(f'Creation of {samples} samples of size from {nmin} to {nmax} has taken {end - start} seconds')
 

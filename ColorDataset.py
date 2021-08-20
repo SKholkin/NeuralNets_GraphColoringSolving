@@ -19,8 +19,9 @@ class ColorDataset(Dataset):
 
     def __init__(self, root, is_train=True):
         self.root = root
-        self.max_size = 30
-        self.max_n_colors = 7
+        self.info = torch.load((os.path.join(root, 'ColorDataset', f'{"train" if is_train else "test"}_info.pt')))
+        self.max_size = self.info['nmax']
+        self.max_n_colors = self.info['max_n_colors']
         mode = 'train' if is_train else 'test'
         self.basic_data = [torch.load(os.path.join(root, 'ColorDataset', mode, item)) for item in
                                os.listdir(os.path.join(root, 'ColorDataset', mode))]

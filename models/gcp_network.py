@@ -1,4 +1,3 @@
-from typing import Reversible
 import torch
 from torch import nn
 from torch.distributions.uniform import Uniform
@@ -9,7 +8,7 @@ from functools import reduce
 from models.rec_gnn import RecGNN
 
 class GraphNeuralNetworkGCP(nn.Module):
-    def __init__(self, max_size, max_n_colors, inner_dim=64, timesteps=32):
+    def __init__(self, max_size, max_n_colors, inner_dim=64, timesteps=32, attention=False):
         super().__init__()
         self.max_size = max_size
         self.max_n_colors = max_n_colors
@@ -19,15 +18,13 @@ class GraphNeuralNetworkGCP(nn.Module):
         self.rnn_c = nn.LSTMCell(input_size=self.inner_dim, hidden_size=self.inner_dim)
         self.dropout = nn.Dropout(p=0.3)
         self.v_init = torch.nn.Parameter(Normal(0, 1).sample([self.inner_dim]) / torch.sqrt(torch.Tensor([self.inner_dim])))
-        self.rec_gnn = RecGNN(inner_dim, timesteps, attention=True)
-        # init Mvv matmul layer (requires_grad=False)
+        self.rec_gnn = RecGNN(inner_dim, timesteps, attention=attention)
         self.c_msg_mlp = nn.Sequential(
             nn.Linear(in_features=self.inner_dim, out_features=100),
             nn.ReLU(),
             nn.Linear(in_features=100, out_features=self.inner_dim),
             nn.ReLU()
         )
-        # init Mvc matmul layers (requires_grad=False)
         self.v_msg_mlp = nn.Sequential(
             nn.Linear(in_features=self.inner_dim, out_features=100),
             nn.ReLU(),

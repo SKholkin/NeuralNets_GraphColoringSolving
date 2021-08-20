@@ -39,6 +39,7 @@ def get_argument_parser():
     parser.add_argument('--print_freq', type=int, help='step of printing statistics', default=10)
     parser.add_argument('--log_dir', type=str, help='directory for logging and saving checkpoints', default='log_dir')
     parser.add_argument('--test_freq', type=int, default=5, help='test every (test_freq) epoch')
+    parser.add_argument('--attention', type=bool, help='Is attention mechanism applied', default=False)
     return parser
 
 
@@ -64,8 +65,11 @@ def main_worker(config):
     configure_logging(config)
     train_dataset = ColorDataset('datasets', is_train=True)
     val_dataset = ColorDataset('datasets', is_train=False)
+    max_size = max(train_dataset.max_size, val_dataset.max_size)
+    max_n_colors = max(train_dataset.max_n_colors, val_dataset.max_n_colors)
+
     criterion = BCELoss()
-    model = GraphNeuralNetworkGCP(train_dataset.max_size, train_dataset.max_n_colors, timesteps=config.timesteps)
+    model = GraphNeuralNetworkGCP(max_size, max_n_colors, timesteps=config.timesteps, attention=config.attention)
     if config.resume is not None:
         model = torch.load(config.resume)
     optimizer = Adam(model.parameters(), lr=config.lr)
@@ -77,7 +81,6 @@ def main_worker(config):
         validate(model, val_loader, criterion, config, 0)
 
 
-# ToDo: calculate accuracy
 def train(model, optimizer, config, train_loader, val_loader, criterion):
     best_acc = 0
     for epoch in range(config.epochs):
@@ -118,8 +121,8 @@ def validate(model, val_loader, criterion, config, epoch):
             output = model(Mvv_batch, n_colors_batch)
             loss = criterion(output, is_solvable_batch.float())
             acc = compute_acc(output, is_solvable_batch.float())
-            avg_loss.update(loss)
-            avg_acc.update(acc)
+            avg_loss.update(float(loss))
+            avg_acc.update(float(acc))
             if iter % config.print_freq == 0:
                 print(f'iter {iter} Loss {loss} Acc {acc}')
     config.tb.add_scalar('Val/Loss', avg_loss.avg(), epoch)

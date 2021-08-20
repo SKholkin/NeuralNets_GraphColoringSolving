@@ -33,8 +33,8 @@ prob_by_color = {3: (0.05, 0.1), 4: (0.1, 0.2), 5: (0.2, 0.25),
                         6: (0.25, 0.3), 7: (0.3, 0.4), 8: (0.4, 0.5)}
 
 
-def basic_instance_gen(n):
-    n_colors = np.random.randint(3, 8)
+def basic_instance_gen(n, n_colors_min=3, n_colors_max=8):
+    n_colors = np.random.randint(n_colors_min, n_colors_max)
     prob_of_edge = np.random.rand() * (prob_by_color[n_colors][1] - prob_by_color[n_colors][0]) + \
                    prob_by_color[n_colors][0]
     basic_graph = basic_graph_gen(n, prob_of_edge)
