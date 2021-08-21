@@ -52,7 +52,7 @@ class RecGNN(nn.Module):
                 attn_inputs = torch.cat((concat_tensor_1, concat_tensor_1.transpose(1, 2)), dim=3)
                 a = self.attn_mlp(attn_inputs).squeeze(3)
                 attn_weights = torch.mul(Mvv, a)
-                attn_weights = masked_softmax(Mvv, a)
+                #attn_weights = masked_softmax(Mvv, a)
                 
             muled_by_adj_matr_v = torch.matmul(attn_weights, vh[-1])
             color_iter_msg = self.c_msg_mlp(ch)

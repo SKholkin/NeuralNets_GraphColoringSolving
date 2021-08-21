@@ -49,6 +49,7 @@ class GraphNeuralNetworkGCP(nn.Module):
         normal = Normal(0, 1)
         # batch_size, vertex, vetrex_embedding
         vh = [self.v_init.repeat(batch_size, self.max_size, 1) for item in self.rnn_v]
+        #vh = [self.v_init.repeat(batch_size, self.max_size, 1) for item in self.rnn_v]
         ch = uniform.sample(torch.Size([batch_size, self.max_n_colors, self.inner_dim]))
 
         final_emb = self.rec_gnn(Mvv, Mvc, vh, ch)
