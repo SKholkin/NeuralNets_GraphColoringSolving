@@ -1,6 +1,7 @@
 {
   "batch_size": 16,
   "epochs": 50,
-  "lr": 1e-04,
+  "lr": 1e-03,
+  "lr_steps": [50, 100, 150],
   "timesteps": 32
 }

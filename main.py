@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import torch
 from torch.utils.data import DataLoader
 from torch.optim import Adam
+from torch.optim.lr_scheduler import MultiStepLR
 from torch.nn import BCELoss
 from torch.utils.tensorboard import SummaryWriter
 import json
@@ -11,7 +12,6 @@ from os import mkdir
 import datetime
 import shutil
 from statistics import mean
-import numpy as np
 
 from ColorDataset import ColorDataset
 from models.gcp_network import GraphNeuralNetworkGCP
@@ -73,15 +73,16 @@ def main_worker(config):
     if config.resume is not None:
         model = torch.load(config.resume)
     optimizer = Adam(model.parameters(), lr=config.lr)
+    lr_scheduler = MultiStepLR(optimizer, milestones=config.lr_steps)
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=True, num_workers=0)
     if config.mode == 'train':
-        train(model, optimizer, config, train_loader, val_loader, criterion)
+        train(model, optimizer, lr_scheduler, config, train_loader, val_loader, criterion)
     else:
         validate(model, val_loader, criterion, config, 0)
 
 
-def train(model, optimizer, config, train_loader, val_loader, criterion):
+def train(model, optimizer, lr_scheduler, config, train_loader, val_loader, criterion):
     best_acc = 0
     for epoch in range(config.epochs):
         print(f'Training epoch {epoch}')
@@ -97,10 +98,12 @@ def train(model, optimizer, config, train_loader, val_loader, criterion):
 
             optimizer.step()
 
-            avg_loss.update(loss)
-            avg_acc.update(acc)
+            avg_loss.update(float(loss))
+            avg_acc.update(float(acc))
             if iter % config.print_freq == 0:
-                print(f'{iter}/{epoch_len} iter Loss: {loss}({avg_loss.avg()}) Acc: {acc} Var: {torch.var(output)}')
+                print(f'{iter}/{epoch_len} iter Loss: {loss}({avg_loss.avg()}) Acc: {acc} Var: {torch.var(output)} Lr: {lr_scheduler.get_last_lr()}')
+        
+        lr_scheduler.step()
         config.tb.add_scalar('Train/Loss', avg_loss.avg(), epoch)
         config.tb.add_scalar('Train/Acc', avg_acc.avg(), epoch)
         print(f'Average epoch {epoch}: loss {avg_loss.avg()}:acc {avg_acc.avg()}')
