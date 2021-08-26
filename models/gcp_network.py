@@ -19,6 +19,7 @@ class GraphNeuralNetworkGCP(nn.Module):
         self.dropout = nn.Dropout(p=0.3)
         self.v_init = torch.nn.Parameter(Normal(0, 1).sample([self.inner_dim]) / torch.sqrt(torch.Tensor([self.inner_dim])))
         self.rec_gnn = RecGNN(inner_dim, timesteps, attention=attention)
+        print(f'Total number of parameters of model: {sum([item.numel() for item in self.rec_gnn.parameters()])}')
         self.c_msg_mlp = nn.Sequential(
             nn.Linear(in_features=self.inner_dim, out_features=100),
             nn.ReLU(),

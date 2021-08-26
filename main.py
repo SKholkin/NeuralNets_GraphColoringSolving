@@ -39,7 +39,7 @@ def get_argument_parser():
     parser.add_argument('--print_freq', type=int, help='step of printing statistics', default=10)
     parser.add_argument('--log_dir', type=str, help='directory for logging and saving checkpoints', default='log_dir')
     parser.add_argument('--test_freq', type=int, default=5, help='test every (test_freq) epoch')
-    parser.add_argument('--attention', type=bool, help='Is attention mechanism applied', default=False)
+    parser.add_argument('--attention', help='Is attention mechanism applied', action='store_true')
     return parser
 
 
@@ -69,9 +69,11 @@ def main_worker(config):
     max_n_colors = max(train_dataset.max_n_colors, val_dataset.max_n_colors)
 
     criterion = BCELoss()
-    model = GraphNeuralNetworkGCP(max_size, max_n_colors, timesteps=config.timesteps, attention=config.attention)
+    model = GraphNeuralNetworkGCP(max_size, max_n_colors, timesteps=config.timesteps, attention=config.attention, inner_dim=128)
     if config.resume is not None:
         model = torch.load(config.resume)
+    
+    print(f'Total number of parameters of model: {sum([item.numel() for item in model.parameters()])}')
     optimizer = Adam(model.parameters(), lr=config.lr)
     lr_scheduler = MultiStepLR(optimizer, milestones=config.lr_steps)
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=0)
@@ -143,4 +145,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     config = GNNConfig.from_json(args.config)
     config.update_form_args(args)
+    print(config.attention)
     main_worker(config)
