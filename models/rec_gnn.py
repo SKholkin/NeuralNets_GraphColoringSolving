@@ -12,7 +12,7 @@ def masked_softmax(mask, x, dim=2):
 
 
 class RecGNN(nn.Module):
-    def __init__(self, inner_dim=64, timesteps=32, attention=False):
+    def __init__(self, inner_dim=64, timesteps=32, attention=False, attention_version='pairwise_0'):
         super().__init__()
         self.timesteps = timesteps
         self.inner_dim = inner_dim
@@ -31,6 +31,8 @@ class RecGNN(nn.Module):
             nn.ReLU()
         )
         self.attention = attention
+        self.attention_version = attention_version if attention else None
+        print(self.attention_version)
         if attention:
             self.attn_mlp = nn.Sequential(
                 nn.Linear(in_features=2 * self.inner_dim, out_features=self.inner_dim // 2),
@@ -38,7 +40,8 @@ class RecGNN(nn.Module):
                 nn.Linear(in_features=self.inner_dim // 2, out_features=1),
                 nn.LeakyReLU()
                 )
-            self.attn_inputs_mlp1 = nn.Linear(in_features=2 * self.inner_dim, out_features=2 * self.inner_dim)
+            if self.attention_version == 'pairwise_2' or self.attention_version == 'pairwise_3':
+                self.attn_inputs_mlp1 = nn.Linear(in_features=2 * self.inner_dim, out_features=2 * self.inner_dim)
         self.vh_mlp = nn.Linear(in_features=self.inner_dim, out_features=self.inner_dim)
 
 
@@ -52,7 +55,9 @@ class RecGNN(nn.Module):
             attn_weights = Mvv
 
             # should activation fn be added?
-            vh_signal = self.vh_mlp(vh[-1])
+            vh_signal = vh[-1]
+            if self.attention_version == 'pairwise_1' or self.attention_version == 'pairwise_2' or self.attention_version == 'pairwise_3':
+                vh_signal = self.vh_mlp(vh_signal)
 
             if self.attention:
                 concat_tensor_1 = vh[-1].unsqueeze(1).repeat([1, vh[-1].size(1), 1, 1])

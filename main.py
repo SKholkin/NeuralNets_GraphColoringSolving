@@ -39,7 +39,6 @@ def get_argument_parser():
     parser.add_argument('--print_freq', type=int, help='step of printing statistics', default=10)
     parser.add_argument('--log_dir', type=str, help='directory for logging and saving checkpoints', default='log_dir')
     parser.add_argument('--test_freq', type=int, default=5, help='test every (test_freq) epoch')
-    parser.add_argument('--attention', help='Is attention mechanism applied', action='store_true')
     return parser
 
 
@@ -69,7 +68,7 @@ def main_worker(config):
     max_n_colors = max(train_dataset.max_n_colors, val_dataset.max_n_colors)
 
     criterion = BCELoss()
-    model = GraphNeuralNetworkGCP(max_size, max_n_colors, timesteps=config.timesteps, attention=config.attention, inner_dim=128)
+    model = GraphNeuralNetworkGCP(max_size, max_n_colors, timesteps=config.timesteps, attention=config.attention, attention_version=config.attention_version, inner_dim=64)
     if config.resume is not None:
         model = torch.load(config.resume)
     

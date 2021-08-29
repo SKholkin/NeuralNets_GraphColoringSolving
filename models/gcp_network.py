@@ -8,18 +8,16 @@ from functools import reduce
 from models.rec_gnn import RecGNN
 
 class GraphNeuralNetworkGCP(nn.Module):
-    def __init__(self, max_size, max_n_colors, inner_dim=64, timesteps=32, attention=False):
+    def __init__(self, max_size, max_n_colors, inner_dim=64, timesteps=32, attention=False, attention_version='pairwise_0'):
         super().__init__()
         self.max_size = max_size
         self.max_n_colors = max_n_colors
         self.timesteps = timesteps
         self.inner_dim = inner_dim
-        self.rnn_v = [nn.LSTMCell(input_size=2 * self.inner_dim, hidden_size=self.inner_dim)]
-        self.rnn_c = nn.LSTMCell(input_size=self.inner_dim, hidden_size=self.inner_dim)
+        self.rnn_v = 1
         self.dropout = nn.Dropout(p=0.3)
         self.v_init = torch.nn.Parameter(Normal(0, 1).sample([self.inner_dim]) / torch.sqrt(torch.Tensor([self.inner_dim])))
-        self.rec_gnn = RecGNN(inner_dim, timesteps, attention=attention)
-        print(f'Total number of parameters of model: {sum([item.numel() for item in self.rec_gnn.parameters()])}')
+        self.rec_gnn = RecGNN(inner_dim, timesteps, attention=attention, attention_version=attention_version)
         self.c_msg_mlp = nn.Sequential(
             nn.Linear(in_features=self.inner_dim, out_features=100),
             nn.ReLU(),
@@ -49,7 +47,7 @@ class GraphNeuralNetworkGCP(nn.Module):
         uniform = Uniform(0, 1)
         normal = Normal(0, 1)
         # batch_size, vertex, vetrex_embedding
-        vh = [self.v_init.repeat(batch_size, self.max_size, 1) for item in self.rnn_v]
+        vh = [self.v_init.repeat(batch_size, self.max_size, 1) for item in range(self.rnn_v)]
         #vh = [self.v_init.repeat(batch_size, self.max_size, 1) for item in self.rnn_v]
         ch = uniform.sample(torch.Size([batch_size, self.max_n_colors, self.inner_dim]))
 
