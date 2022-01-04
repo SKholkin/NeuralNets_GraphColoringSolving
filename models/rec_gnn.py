@@ -16,6 +16,7 @@ class RecGNN(nn.Module):
         super().__init__()
         self.timesteps = timesteps
         self.inner_dim = inner_dim
+        self.dropout = nn.Dropout(p=0.3)
         self.rnn_v = [nn.LSTMCell(input_size=2 * self.inner_dim, hidden_size=self.inner_dim)]
         self.rnn_c = nn.LSTMCell(input_size=self.inner_dim, hidden_size=self.inner_dim)
         self.c_msg_mlp = nn.Sequential(

@@ -12,7 +12,6 @@ from os import mkdir
 import datetime
 import shutil
 from statistics import mean
-
 from ColorDataset import ColorDataset
 from models.gcp_network import GraphNeuralNetworkGCP
 from models.gcn import GCN
@@ -60,7 +59,6 @@ class GNNConfig(Dict):
 
 
 def main_worker(config):
-    # config parse?
     configure_logging(config)
     train_dataset = ColorDataset('datasets', is_train=True)
     val_dataset = ColorDataset('datasets', is_train=False)
@@ -102,7 +100,9 @@ def train(model, optimizer, lr_scheduler, config, train_loader, val_loader, crit
             avg_loss.update(float(loss))
             avg_acc.update(float(acc))
             if iter % config.print_freq == 0:
-                print(f'{iter}/{epoch_len} iter Loss: {loss}({avg_loss.avg()}) Acc: {acc} Var: {torch.var(output)} Lr: {lr_scheduler.get_last_lr()}')
+                print(f'{iter}/{epoch_len} iter Loss: {loss}({avg_loss.avg()}) Acc: {acc} Lr: {lr_scheduler.get_last_lr()}')
+            if (iter + 1) % 100 == 0:
+                break
         
         lr_scheduler.step()
         config.tb.add_scalar('Train/Loss', avg_loss.avg(), epoch)

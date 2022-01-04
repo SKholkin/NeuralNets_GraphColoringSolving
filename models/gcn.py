@@ -62,6 +62,7 @@ class GCN(nn.Module):
         self.max_v = max_v
         self.gcn_v1 = GCNLayer(input_dim=self.max_n_color * self.dim_per_color, hidden_dim=self.max_n_color * self.dim_per_color)
         self.gcn_v2 = GCNLayer(input_dim=self.max_n_color * self.dim_per_color, hidden_dim=self.max_n_color * self.dim_per_color)
+        self.gcn_v3 = GCNLayer(input_dim=self.max_n_color * self.dim_per_color, hidden_dim=self.max_n_color * self.dim_per_color)
         self.uniform = Uniform(0, 1)
         self.v_vote_mlp = nn.Sequential(
             nn.Linear(in_features=self.max_n_color * self.dim_per_color, out_features=self.max_n_color * self.dim_per_color // 4),
@@ -81,6 +82,7 @@ class GCN(nn.Module):
         v_features = self.uniform.sample(torch.Size([batch_size, a.size(1), self.max_n_color * self.dim_per_color]))
         v_features = self.gcn_v1(a, torch.mul(v_features, color_mask), sym_norm_laplacian)
         v_features = self.gcn_v2(a, torch.mul(v_features, color_mask), sym_norm_laplacian)
+        v_features = self.gcn_v3(a, torch.mul(v_features, color_mask), sym_norm_laplacian)
 
         vote = self.v_vote_mlp(v_features)
         mean_vote = torch.mean(vote, 1)
