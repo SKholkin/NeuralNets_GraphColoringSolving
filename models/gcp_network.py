@@ -38,7 +38,6 @@ class GraphNeuralNetworkGCP(nn.Module):
         ch = uniform.sample(torch.Size([batch_size, self.max_n_colors, self.inner_dim]))
 
         vh = self.preprocess_gnn(Mvv, vh)
-        print(f'output of preprocessing gcn {vh.size()}')
         final_emb = self.rec_gnn(Mvv, Mvc, vh, ch)
 
         # compute final prediction
