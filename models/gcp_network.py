@@ -6,6 +6,7 @@ from torch.distributions.normal import Normal
 from functools import reduce
 
 from models.rec_gnn import RecGNN
+from models.gcn import GCN
 
 class GraphNeuralNetworkGCP(nn.Module):
     def __init__(self, max_size, max_n_colors, inner_dim=64, timesteps=32, attention=False, attention_version='pairwise_0'):
@@ -16,6 +17,7 @@ class GraphNeuralNetworkGCP(nn.Module):
         self.inner_dim = inner_dim
         self.rnn_v = 1
         self.v_init = torch.nn.Parameter(Normal(0, 1).sample([self.inner_dim]) / torch.sqrt(torch.Tensor([self.inner_dim])))
+        self.preprocess_gnn = GCN(hidden_dim=inner_dim)
         self.rec_gnn = RecGNN(inner_dim, timesteps, attention=attention, attention_version=attention_version)
         self.v_vote_mlp = nn.Sequential(
             nn.Linear(in_features=self.inner_dim, out_features=self.inner_dim // 4),
@@ -32,9 +34,11 @@ class GraphNeuralNetworkGCP(nn.Module):
                             for batch_elem in range(batch_size)], dtype=torch.float32)
         uniform = Uniform(0, 1)
         # batch_size, vertex, vetrex_embedding
-        vh = [self.v_init.repeat(batch_size, self.max_size, 1) for item in range(self.rnn_v)]
+        vh = self.v_init.repeat(batch_size, self.max_size, 1)
         ch = uniform.sample(torch.Size([batch_size, self.max_n_colors, self.inner_dim]))
 
+        vh = self.preprocess_gnn(Mvv, vh)
+        print(f'output of preprocessing gcn {vh.size()}')
         final_emb = self.rec_gnn(Mvv, Mvc, vh, ch)
 
         # compute final prediction
