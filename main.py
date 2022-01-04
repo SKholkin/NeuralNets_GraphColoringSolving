@@ -144,5 +144,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     config = GNNConfig.from_json(args.config)
     config.update_form_args(args)
-    print(config.attention)
     main_worker(config)

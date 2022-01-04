@@ -17,18 +17,6 @@ class GraphNeuralNetworkGCP(nn.Module):
         self.rnn_v = 1
         self.v_init = torch.nn.Parameter(Normal(0, 1).sample([self.inner_dim]) / torch.sqrt(torch.Tensor([self.inner_dim])))
         self.rec_gnn = RecGNN(inner_dim, timesteps, attention=attention, attention_version=attention_version)
-        self.c_msg_mlp = nn.Sequential(
-            nn.Linear(in_features=self.inner_dim, out_features=100),
-            nn.ReLU(),
-            nn.Linear(in_features=100, out_features=self.inner_dim),
-            nn.ReLU()
-        )
-        self.v_msg_mlp = nn.Sequential(
-            nn.Linear(in_features=self.inner_dim, out_features=100),
-            nn.ReLU(),
-            nn.Linear(in_features=100, out_features=self.inner_dim),
-            nn.ReLU()
-        )
         self.v_vote_mlp = nn.Sequential(
             nn.Linear(in_features=self.inner_dim, out_features=self.inner_dim // 4),
             nn.Sigmoid(),

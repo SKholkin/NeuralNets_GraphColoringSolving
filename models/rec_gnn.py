@@ -17,7 +17,8 @@ class RecGNN(nn.Module):
         self.timesteps = timesteps
         self.inner_dim = inner_dim
         self.dropout = nn.Dropout(p=0.3)
-        self.rnn_v = [nn.LSTMCell(input_size=2 * self.inner_dim, hidden_size=self.inner_dim)]
+        
+        self.rnn_v = nn.ModuleList([nn.LSTMCell(input_size=2 * self.inner_dim, hidden_size=self.inner_dim)])
         self.rnn_c = nn.LSTMCell(input_size=self.inner_dim, hidden_size=self.inner_dim)
         self.c_msg_mlp = nn.Sequential(
             nn.Linear(in_features=self.inner_dim, out_features=100),
@@ -33,7 +34,7 @@ class RecGNN(nn.Module):
         )
         self.attention = attention
         self.attention_version = attention_version if attention else None
-        print(self.attention_version)
+        print(f'Attention version {self.attention_version}')
         if attention:
             self.attn_mlp = nn.Sequential(
                 nn.Linear(in_features=2 * self.inner_dim, out_features=self.inner_dim // 2),
@@ -45,7 +46,6 @@ class RecGNN(nn.Module):
                 self.attn_inputs_mlp1 = nn.Linear(in_features=2 * self.inner_dim, out_features=2 * self.inner_dim)
         self.vh_mlp = nn.Linear(in_features=self.inner_dim, out_features=self.inner_dim)
 
-
     def forward(self, Mvv, Mvc, vh, ch):
         batch_size = Mvv.size(0)
         max_size = Mvv.size(1)
@@ -55,7 +55,6 @@ class RecGNN(nn.Module):
         for iter in range(self.timesteps):
             attn_weights = Mvv
 
-            # should activation fn be added?
             vh_signal = vh[-1]
             if self.attention_version == 'pairwise_1' or self.attention_version == 'pairwise_2' or self.attention_version == 'pairwise_3':
                 vh_signal = self.vh_mlp(vh_signal)
@@ -63,10 +62,8 @@ class RecGNN(nn.Module):
             if self.attention:
                 concat_tensor_1 = vh[-1].unsqueeze(1).repeat([1, vh[-1].size(1), 1, 1])
                 attn_inputs = torch.cat((concat_tensor_1, concat_tensor_1.transpose(1, 2)), dim=3)
-                #attn_inputs = self.attn_inputs_mlp1(attn_inputs)
                 a = self.attn_mlp(attn_inputs).squeeze(3)
                 attn_weights = torch.mul(Mvv, a)
-                #attn_weights = masked_softmax(Mvv, a)
             
             muled_by_adj_matr_v = torch.matmul(attn_weights, vh_signal)
             color_iter_msg = self.c_msg_mlp(ch)
