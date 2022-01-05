@@ -34,7 +34,7 @@ class RecGNN(nn.Module):
         )
         self.attention = attention
         self.attention_version = attention_version if attention else None
-        print(f'Attention version {self.attention_version}')
+        print(f'Attention version {self.attention_version} Inner dim {self.inner_dim}')
         if attention:
             self.attn_mlp = nn.Sequential(
                 nn.Linear(in_features=2 * self.inner_dim, out_features=self.inner_dim // 2),
@@ -50,17 +50,17 @@ class RecGNN(nn.Module):
         batch_size = Mvv.size(0)
         max_size = Mvv.size(1)
         max_n_colors = Mvc.size(2)
-        v_memory = torch.zeros(torch.Size([batch_size, max_size, self.inner_dim]))
-        c_memory = torch.zeros(torch.Size([batch_size, max_n_colors, self.inner_dim]))
+        v_memory = torch.zeros(torch.Size([batch_size, max_size, self.inner_dim])).to(Mvv.device)
+        c_memory = torch.zeros(torch.Size([batch_size, max_n_colors, self.inner_dim])).to(Mvv.device)
         for iter in range(self.timesteps):
             attn_weights = Mvv
 
-            vh_signal = vh[-1]
+            vh_signal = vh
             if self.attention_version == 'pairwise_1' or self.attention_version == 'pairwise_2' or self.attention_version == 'pairwise_3':
                 vh_signal = self.vh_mlp(vh_signal)
 
             if self.attention:
-                concat_tensor_1 = vh[-1].unsqueeze(1).repeat([1, vh[-1].size(1), 1, 1])
+                concat_tensor_1 = vh_signal.unsqueeze(1).repeat([1, vh_signal.size(1), 1, 1])
                 attn_inputs = torch.cat((concat_tensor_1, concat_tensor_1.transpose(1, 2)), dim=3)
                 a = self.attn_mlp(attn_inputs).squeeze(3)
                 attn_weights = torch.mul(Mvv, a)

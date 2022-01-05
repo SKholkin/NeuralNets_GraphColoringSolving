@@ -69,9 +69,12 @@ def main_worker(config):
     model = GraphNeuralNetworkGCP(max_size, max_n_colors, timesteps=config.timesteps, attention=config.attention, attention_version=config.attention_version, inner_dim=64)
     if config.resume is not None:
         model = torch.load(config.resume)
+
+    if torch.cuda.is_available():
+        model.to(torch.device('cuda'))
     
     print(f'Total number of parameters of model: {sum([item.numel() for item in model.parameters()])}')
-    optimizer = Adam(model.parameters(), lr=config.lr)
+    optimizer = Adam(model.parameters(), lr=config.lr, weight_decay=1e-4)
     lr_scheduler = MultiStepLR(optimizer, milestones=config.lr_steps)
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=True, num_workers=0)
@@ -83,12 +86,14 @@ def main_worker(config):
 
 def train(model, optimizer, lr_scheduler, config, train_loader, val_loader, criterion):
     best_acc = 0
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     for epoch in range(config.epochs):
         print(f'Training epoch {epoch}')
         avg_loss = AverageMetr()
         avg_acc = AverageMetr()
         epoch_len = int(len(train_loader))
         for iter, (Mvv_batch, n_colors_batch, is_solvable_batch) in enumerate(train_loader):
+            Mvv_batch, n_colors_batch, is_solvable_batch = Mvv_batch.to(device), n_colors_batch.to(device), is_solvable_batch.to(device)
             optimizer.zero_grad()
             output = model(Mvv_batch, n_colors_batch)
             loss = criterion(output, is_solvable_batch.float())
@@ -119,9 +124,11 @@ def train(model, optimizer, lr_scheduler, config, train_loader, val_loader, crit
 def validate(model, val_loader, criterion, config, epoch):
     avg_loss = AverageMetr()
     avg_acc = AverageMetr()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('Validating...')
     with torch.no_grad():
         for iter, (Mvv_batch, n_colors_batch, is_solvable_batch) in enumerate(val_loader):
+            Mvv_batch, n_colors_batch, is_solvable_batch = Mvv_batch.to(device), n_colors_batch.to(device), is_solvable_batch.to(device)
             output = model(Mvv_batch, n_colors_batch)
             loss = criterion(output, is_solvable_batch.float())
             acc = compute_acc(output, is_solvable_batch.float())
