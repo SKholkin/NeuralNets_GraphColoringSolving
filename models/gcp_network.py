@@ -9,10 +9,9 @@ from models.rec_gnn import RecGNN
 from models.gcn import GCN
 
 class GraphNeuralNetworkGCP(nn.Module):
-    def __init__(self, max_size, max_n_colors, inner_dim=64, timesteps=32, attention=False, attention_version='pairwise_0'):
+    def __init__(self, max_n_colors=10, inner_dim=64, timesteps=32, attention=False, attention_version='pairwise_0'):
         super().__init__()
-        self.max_size = max_size
-        self.max_n_colors = max_n_colors
+        self.max_n_colors = max(max_n_colors, 10)
         self.timesteps = timesteps
         self.inner_dim = inner_dim
         self.rnn_v = 1
@@ -30,11 +29,11 @@ class GraphNeuralNetworkGCP(nn.Module):
         Mvv += torch.eye(Mvv.size(1)).unsqueeze(0).repeat(batch_size, 1, 1)
         Mvc = torch.tensor([[[1 if j < n_colors[batch_elem] else 0
                               for j in range(self.max_n_colors)]
-                             for i in range(self.max_size)]
+                             for i in range(Mvv.size(1))]
                             for batch_elem in range(batch_size)], dtype=torch.float32)
         uniform = Uniform(0, 1)
         # batch_size, vertex, vetrex_embedding
-        vh = self.v_init.repeat(batch_size, self.max_size, 1)
+        vh = self.v_init.repeat(batch_size, Mvv.size(1), 1)
         ch = uniform.sample(torch.Size([batch_size, self.max_n_colors, self.inner_dim]))
 
         vh = self.preprocess_gnn(Mvv, vh)

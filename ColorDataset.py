@@ -16,15 +16,14 @@ def _transform_to_instance(adj_matr, n_colors, is_solvable, v_size=30, c_size=11
 
 
 class ColorDataset(Dataset):
-
     def __init__(self, root, is_train=True):
         self.root = root
-        self.info = torch.load((os.path.join(root, 'ColorDataset', f'{"train" if is_train else "test"}_info.pt')))
+        self.info = torch.load((os.path.join(root,  f'{"train" if is_train else "test"}_info.pt')))
         self.max_size = self.info['nmax']
         self.max_n_colors = self.info['max_n_colors']
         mode = 'train' if is_train else 'test'
-        self.basic_data = [torch.load(os.path.join(root, 'ColorDataset', mode, item)) for item in
-                               os.listdir(os.path.join(root, 'ColorDataset', mode))]
+        self.basic_data = [torch.load(os.path.join(root, mode, item)) for item in
+                               os.listdir(os.path.join(root, mode))]
         self.data = []
         for graph_info in self.basic_data:
             self.data.append((graph_info['adj_list'], graph_info['n_colors'], graph_info['is_solvable']))
@@ -38,17 +37,3 @@ class ColorDataset(Dataset):
 
     def __len__(self):
         return len(self.basic_data)
-
-
-def prepare_folders(root, clear_up=False, is_test=False):
-    mode = 'test' if is_test else 'train'
-    if not os.path.exists(root):
-        raise RuntimeError('root dataset path do not exist')
-    if not os.path.exists(os.path.join(root, 'ColorDataset')):
-        os.mkdir(os.path.join(root, 'ColorDataset'))
-    if not os.path.exists(os.path.join(root, 'ColorDataset', mode)):
-        os.mkdir(os.path.join(root, 'ColorDataset', mode))
-    else:
-        if clear_up:
-            [os.remove(os.path.join(root, 'ColorDataset', mode, f)) for f in os.listdir(
-                os.path.join(root, 'ColorDataset', mode))]

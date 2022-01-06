@@ -60,13 +60,13 @@ class GNNConfig(Dict):
 
 def main_worker(config):
     configure_logging(config)
-    train_dataset = ColorDataset('datasets', is_train=True)
-    val_dataset = ColorDataset('datasets', is_train=False)
+    train_dataset = ColorDataset(config.data, is_train=True)
+    val_dataset = ColorDataset(config.data, is_train=False)
     max_size = max(train_dataset.max_size, val_dataset.max_size)
     max_n_colors = max(train_dataset.max_n_colors, val_dataset.max_n_colors)
 
     criterion = BCELoss()
-    model = GraphNeuralNetworkGCP(max_size, max_n_colors, timesteps=config.timesteps, attention=config.attention, attention_version=config.attention_version, inner_dim=64)
+    model = GraphNeuralNetworkGCP(max_n_colors, timesteps=config.timesteps, attention=config.attention, attention_version=config.attention_version, inner_dim=64)
     if config.resume is not None:
         model = torch.load(config.resume)
     
