@@ -2,7 +2,6 @@ import numpy as np
 import os
 import time
 from torch import save
-import torch
 from utils import adj_matr_to_adj_list
 from graph_generator import solve_by_csp, basic_instance_gen
 import random

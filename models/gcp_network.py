@@ -29,21 +29,12 @@ class GraphNeuralNetworkGCP(nn.Module):
         Mvv += torch.eye(Mvv.size(1)).unsqueeze(0).repeat(batch_size, 1, 1).to(Mvv.device)
         Mvc = torch.tensor([[[1 if j < n_colors[batch_elem] else 0
                               for j in range(self.max_n_colors)]
-<<<<<<< HEAD
                              for i in range(Mvv.size(1))]
                             for batch_elem in range(batch_size)], dtype=torch.float32).to(Mvv.device)
         uniform = Uniform(0, 1)
         # batch_size, vertex, vetrex_embedding
         vh = self.v_init.repeat(batch_size, Mvv.size(1), 1).to(Mvv.device)
         ch = uniform.sample(torch.Size([batch_size, self.max_n_colors, self.inner_dim])).to(Mvv.device)
-=======
-                             for i in range(self.max_size)]
-                            for batch_elem in range(batch_size)], dtype=torch.float32).to(Mvv.device)
-        uniform = Uniform(0, 1)
-        # batch_size, vertex, vetrex_embedding
-        vh = self.v_init.repeat(batch_size, self.max_size, 1).to(Mvv.device)
-        ch = uniform.sample(torch.Size([batch_size, self.max_n_colors, self.inner_dim])).to(Mvv.device)
->>>>>>> refs/remotes/origin/improve_recgnn
 
         vh = self.preprocess_gnn(Mvv, vh)
         final_emb = self.rec_gnn(Mvv, Mvc, vh, ch)
