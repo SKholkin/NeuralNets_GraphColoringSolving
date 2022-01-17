@@ -2,12 +2,24 @@ import numpy as np
 import os
 import time
 from torch import save
-import torch
 from utils import adj_matr_to_adj_list
-from ColorDataset import prepare_folders
 from graph_generator import solve_by_csp, basic_instance_gen
 import random
 import argparse
+
+
+def prepare_folders(root, clear_up=False, is_test=False):
+    mode = 'test' if is_test else 'train'
+    if not os.path.exists(root):
+        raise RuntimeError('root dataset path do not exist')
+    if not os.path.exists(os.path.join(root, 'ColorDataset')):
+        os.mkdir(os.path.join(root, 'ColorDataset'))
+    if not os.path.exists(os.path.join(root, 'ColorDataset', mode)):
+        os.mkdir(os.path.join(root, 'ColorDataset', mode))
+    else:
+        if clear_up:
+            [os.remove(os.path.join(root, 'ColorDataset', mode, f)) for f in os.listdir(
+                os.path.join(root, 'ColorDataset', mode))]
 
 
 def get_edges(adj_matr, is_edge=True):

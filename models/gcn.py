@@ -12,17 +12,16 @@ def calculate_sym_normalized_Laplacian(A):
 
 
 class GCNLayer(nn.Module):
-    def __init__(self, input_dim=64, hidden_dim=64):
+    def __init__(self, hidden_dim=64):
         super().__init__()
         self.relu = nn.ReLU()
-        self.linear = nn.Linear(in_features=input_dim, out_features=hidden_dim)
+        self.linear = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
 
-    def forward(self, a, x, sym_norm_laplacian=None):
-        if sym_norm_laplacian is None:
-            sym_norm_laplacian = calculate_sym_normalized_Laplacian(a)
-        x = torch.matmul(sym_norm_laplacian, x)
+    def forward(self, Mvv, x):
+        x = torch.matmul(Mvv, x)
         x = self.linear(x)
-        return self.relu(x)
+        x = self.relu(x)
+        return x
 
 
 class GCNTyped(nn.Module):
@@ -55,34 +54,15 @@ class GCNTyped(nn.Module):
 
 
 class GCN(nn.Module):
-    def __init__(self, max_v, max_n_color, dim_per_color = 10):
+    def __init__(self, hidden_dim=64):
         super().__init__()
-        self.dim_per_color = dim_per_color
-        self.max_n_color = max_n_color
-        self.max_v = max_v
-        self.gcn_v1 = GCNLayer(input_dim=self.max_n_color * self.dim_per_color, hidden_dim=self.max_n_color * self.dim_per_color)
-        self.gcn_v2 = GCNLayer(input_dim=self.max_n_color * self.dim_per_color, hidden_dim=self.max_n_color * self.dim_per_color)
-        self.uniform = Uniform(0, 1)
-        self.v_vote_mlp = nn.Sequential(
-            nn.Linear(in_features=self.max_n_color * self.dim_per_color, out_features=self.max_n_color * self.dim_per_color // 4),
-            nn.Sigmoid(),
-            nn.Linear(in_features=self.max_n_color * self.dim_per_color // 4, out_features=1)
-        )
+        self.hidden_dim = hidden_dim
+        self.gcn_v1 = GCNLayer(hidden_dim=self.hidden_dim)
+        self.gcn_v2 = GCNLayer(hidden_dim=self.hidden_dim)
+        self.gcn_v3 = GCNLayer(hidden_dim=self.hidden_dim)
 
-    def forward(self, a, n_colors):
-        batch_size = a.size(0)
-        color_mask = torch.tensor([[[1 if j < n_colors[batch_elem] * self.dim_per_color else 0
-                              for j in range(self.max_n_color * self.dim_per_color)]
-                             for i in range(self.max_v)]
-                            for batch_elem in range(batch_size)], dtype=torch.float32, requires_grad=False)
-        a += torch.eye(a.size(1))
-
-        sym_norm_laplacian = calculate_sym_normalized_Laplacian(a)
-        v_features = self.uniform.sample(torch.Size([batch_size, a.size(1), self.max_n_color * self.dim_per_color]))
-        v_features = self.gcn_v1(a, torch.mul(v_features, color_mask), sym_norm_laplacian)
-        v_features = self.gcn_v2(a, torch.mul(v_features, color_mask), sym_norm_laplacian)
-
-        vote = self.v_vote_mlp(v_features)
-        mean_vote = torch.mean(vote, 1)
-        pred = torch.sigmoid(mean_vote).squeeze()
-        return pred
+    def forward(self, Mvv, x):
+        x = self.gcn_v1(Mvv, x)
+        x = self.gcn_v2(Mvv, x)
+        x = self.gcn_v3(Mvv, x)
+        return x
