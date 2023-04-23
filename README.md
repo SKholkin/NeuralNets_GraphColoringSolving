@@ -39,3 +39,5 @@ Basic graph attention aggregator related paper (https://arxiv.org/abs/1710.10903
  
 Experiments on GNN_GCP (https://machine-reasoning-ufrgs.github.io/GNN-GCP/) haven't gone well (more likely there is bug somewhere)
 ### Work on project has been stopped
+
+### For paper (on Russian) see [here](https://cyberleninka.ru/article/n/nahozhdenie-hromaticheskogo-chisla-grafa-s-pomoschyu-metodov-glubokogo-obucheniya/viewer)
